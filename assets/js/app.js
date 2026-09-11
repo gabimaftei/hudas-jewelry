@@ -31,7 +31,7 @@
       'hero.caption': 'Irak / România',
 
       'collection.eyebrow': 'Piesele',
-      'collection.title': 'Treisprezece piese, niciuna la fel',
+      'collection.title': 'Nu există două piese la fel',
       'collection.lede': 'Fiecare e lucrată de mână, de la sârmă la piatră. Când una pleacă, gata — nu se mai face identic nici dacă cineva o cere.',
       'collection.empty': 'Nicio piesă de tipul ăsta deocamdată.',
       'collection.note': 'Ai în cap ceva ce nu e aici? O piatră de la care să pornim, o piesă veche de reînviat? <a href="#contact">Scrie-i</a> — se lucrează și la comandă.',
@@ -107,7 +107,7 @@
       'hero.caption': 'Iraq / Romania',
 
       'collection.eyebrow': 'The pieces',
-      'collection.title': 'Thirteen pieces, no two alike',
+      'collection.title': 'No two pieces alike',
       'collection.lede': 'Each one worked by hand, from the wire to the stone. Once a piece is gone it is gone — it will not be remade, even on request.',
       'collection.empty': 'Nothing of that kind yet.',
       'collection.note': 'Have something else in mind? A stone to build around, an old piece to bring back? <a href="#contact">Message her</a> — she takes commissions.',

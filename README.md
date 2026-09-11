@@ -78,7 +78,12 @@ Dimensiune bună: în jur de 1200–1400 px pe latura lungă, sub ~150 KB.
 
 ## 3. Cum se adaugă sau se modifică o piesă
 
-Se deschide `assets/js/products.js` și se copiază un bloc. Totul e comentat.
+**În mod normal, din panoul de la `/admin`** — vezi secțiunea 8. Ce urmează e
+pentru cazul în care vrei să umbli direct în fișier.
+
+Se deschide `assets/js/products.js` și se copiază un bloc. Atenție: prima
+salvare din panou rescrie fișierul, deci comentariile din el se pierd — datele,
+nu.
 
 ```js
 {
@@ -98,9 +103,8 @@ dar trebuie să primească și o traducere (`f.<kind>`) în `app.js`.
 Când o piesă pleacă, `sold: false` devine `sold: true`. Rămâne pe site ca
 portofoliu, cu mențiunea „Piesă plecată”, iar butonul de comandă se stinge.
 
-**Numărul din titlu nu se actualizează singur.** „Treisprezece piese” e scris de
-mână, în `app.js`, la cheile `collection.title` (și în `index.html`). La a
-paisprezecea piesă trebuie schimbat în amândouă locurile.
+Titlul secțiunii nu conține un număr, intenționat: „Treisprezece piese" ar fi
+rămas în urmă la prima piesă adăugată din panou.
 
 ---
 
@@ -207,14 +211,97 @@ problemă pentru Google — dar e bine de știut.
 
 ---
 
-## 8. De făcut mai departe
+## 8. Panoul de la /admin
+
+Huda își adaugă singură piesele, la `adresa-site-ului/admin`. Intră cu o
+parolă — nu are cont de GitHub, nu vede niciun commit, pentru ea e un
+formular. Ghidul scris pentru ea e în [GHID.md](GHID.md).
+
+### Cum funcționează
+
+```
+  /admin  ──POST cu parola──▶  /api/publish  ──token GitHub──▶  repo
+ (browser)                    (funcție pe server)                 │
+                                                                  ▼
+                                                        redeploy automat
+```
+
+Tokenul de GitHub stă **numai** în funcție, ca secret pe server. Panoul din
+browserul ei nu-l vede niciodată; el trimite doar parola și conținutul. De
+aceea panoul are nevoie de o gazdă care poate rula funcții — GitHub Pages
+servește doar fișiere, deci site-ul se mută pe **Cloudflare Pages** (gratuit,
+și acolo se leagă și domeniul).
+
+Tot ce se schimbă într-o salvare — texte și poze — intră într-un **singur
+commit**, ca să nu existe o clipă în care piesa e scrisă dar poza încă nu.
+
+**Pozele se taie și se micșorează în browserul ei, înainte să plece.** E
+același algoritm cu care au fost pregătite primele 13 piese: caută marginea
+bijuteriei pe fundal alb, lasă 10% aer, duce latura lungă la maximum 1400px
+și comprimă. Fără el, o poză direct din telefon ar ajunge de 4 MB pe site și
+încadrată altfel decât toate celelalte. Dacă poza nu e pe alb — una purtată
+pe mână, de exemplu — algoritmul își dă seama singur și n-o taie.
+
+### Ce ai de făcut o dată, la început
+
+**1. Un token de GitHub.** github.com → Settings → Developer settings →
+Personal access tokens → Fine-grained tokens → Generate new token.
+Only select repositories → `hudas-jewelry`. La Permissions → Repository
+permissions → **Contents: Read and write**. Atât, nimic altceva.
+
+**2. Site-ul pe Cloudflare Pages.** Cont gratuit pe cloudflare.com →
+Workers & Pages → Create → Pages → Connect to Git → alegi `hudas-jewelry`.
+Fără build command, output directory `/`. Funcția din `functions/` e găsită
+singură.
+
+**3. Cele trei variabile.** În Cloudflare, Settings → Environment variables,
+pentru Production:
+
+| Nume | Valoare |
+|---|---|
+| `ADMIN_PASSWORD` | parola pe care i-o dai ei |
+| `GITHUB_TOKEN` | tokenul de la pasul 1 — bifează **Encrypt** |
+| `GITHUB_REPO` | `gabimaftei/hudas-jewelry` |
+
+**4. Domeniul.** Tot în Cloudflare, Custom domains. După ce e legat, schimbă
+cele trei adrese absolute din `index.html` (`og:image`, `og:url`,
+`canonical`), altfel previzualizarea linkului rămâne pe adresa veche.
+
+GitHub Pages poate rămâne pornit ca oglindă, dar **panoul nu merge acolo** —
+`/api/publish` întoarce 404, fiindcă Pages nu rulează funcții. Ca să nu existe
+două adrese vii cu conținut identic, cel mai curat e să-l oprești după ce
+Cloudflare merge.
+
+### Dacă ceva nu merge
+
+- **„Parolă greșită" deși e corectă** → `ADMIN_PASSWORD` nu e setată pe
+  Production, sau are un spațiu la capăt.
+- **„Panoul nu e configurat complet"** → lipsește una dintre cele trei
+  variabile.
+- **„Nu s-a putut salva: GitHub … 403"** → tokenul a expirat sau n-are
+  Contents: Read and write pe repo-ul ăsta.
+- **A salvat, dar nu se vede pe site** → uită-te în Cloudflare la
+  Deployments; commit-ul există deja în repo, deci nimic nu s-a pierdut.
+
+### Dacă strică ceva
+
+Fiecare salvare e un commit separat, semnat „Salvat de Huda din panoul de la
+/admin". Orice greșeală se dă înapoi cu `git revert <commit>` și un push —
+inclusiv o piesă ștearsă din greșeală, cu poze cu tot.
+
+---
+
+## 9. De făcut mai departe
 
 - **Verificat materialele, numele și anii** (secțiunea 1). E primul lucru.
 - **Fotografiile originale** în locul capturilor (secțiunea 2).
 - **Un paragraf scris de Huda** pentru „Despre Huda”.
 - **`og.jpg`** e generat automat din trei piese. O fotografie făcută anume pentru
   previzualizarea linkului ar arăta mai bine.
-- Marcat `sold: true` piesele care au plecat deja.
+- Marcat piesele care au plecat deja (din panou, „Piesa a plecat").
+- **Schimbă parola panoului** dacă ajunge pe unde nu trebuie: se schimbă
+  într-un singur loc, `ADMIN_PASSWORD` în Cloudflare, și intră în vigoare
+  imediat.
 - Prețuri pe carduri, dacă se răzgândește vreodată.
 - Instrucțiuni de îngrijire — argintul se oxidează, iar cine cumpără prima lui
   bijuterie lucrată manual nu știe asta.

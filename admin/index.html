@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panou — HUDA'S JEWELRY</title>
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b221c'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='16' fill='%23c9a57e' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="admin.css?v=1">
+</head>
+<body>
+
+<!-- ══════════ INTRARE ══════════ -->
+<div class="gate" id="gate">
+  <form class="gate__box" id="gate-form">
+    <h1 class="gate__title">Panoul Hudei</h1>
+    <p class="gate__lede">Aici se adaugă piese noi și se schimbă textele de pe site.</p>
+    <label class="field">
+      <span class="field__label">Parola</span>
+      <input type="password" id="gate-pass" autocomplete="current-password" required>
+    </label>
+    <button class="btn btn--primary btn--full" type="submit" id="gate-go">Intră</button>
+    <p class="gate__err" id="gate-err" hidden></p>
+  </form>
+</div>
+
+<!-- ══════════ PANOU ══════════ -->
+<div class="app" id="app" hidden>
+
+  <header class="bar">
+    <div class="bar__brand">
+      <strong>Panoul Hudei</strong>
+      <span id="count"></span>
+    </div>
+    <div class="bar__right">
+      <span class="bar__status" id="status"></span>
+      <a class="btn btn--ghost" href="../" target="_blank" rel="noopener">Vezi site-ul</a>
+      <button class="btn btn--primary" type="button" id="save" disabled>Publică</button>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- lista pieselor -->
+    <aside class="side">
+      <div class="side__head">
+        <h2>Piese</h2>
+        <button class="btn btn--small" type="button" id="add">+ Adaugă</button>
+      </div>
+      <p class="side__hint">Ordinea de aici e ordinea de pe site. Prima e cea de sus.</p>
+      <ol class="plist" id="plist"></ol>
+    </aside>
+
+    <!-- editorul -->
+    <section class="editor" id="editor">
+      <p class="editor__empty" id="editor-empty">Alege o piesă din stânga, sau adaugă una nouă.</p>
+
+      <div class="editor__body" id="editor-body" hidden>
+
+        <div class="editor__top">
+          <h2 id="ed-title">Piesă</h2>
+          <button class="btn btn--danger btn--small" type="button" id="del">Șterge piesa</button>
+        </div>
+
+        <!-- POZE -->
+        <section class="block">
+          <h3 class="block__title">Pozele</h3>
+          <p class="block__hint">
+            Prima poză e cea care apare în galerie, deci pune-o pe cea mai bună.
+            Trage pozele aici sau apasă butonul. Le tai și le micșorez eu,
+            ca să semene cu restul site-ului.
+          </p>
+
+          <div class="drop" id="drop">
+            <input type="file" id="file" accept="image/*" multiple hidden>
+            <button class="btn btn--ghost" type="button" id="pick">Alege poze</button>
+            <span class="drop__or">sau trage-le aici</span>
+          </div>
+
+          <label class="check">
+            <input type="checkbox" id="autocrop" checked>
+            <span>Taie automat marginile albe din jurul bijuteriei</span>
+          </label>
+          <p class="block__hint block__hint--tight" id="crop-note">
+            Dezactivează dacă poza nu e pe fundal alb — de exemplu una purtată pe mână.
+          </p>
+
+          <ul class="shots" id="shots"></ul>
+        </section>
+
+        <!-- TEXTE -->
+        <section class="block">
+          <h3 class="block__title">Textele</h3>
+          <p class="block__hint">
+            Coloana din stânga e ce se vede pe site în română, cea din dreapta în engleză.
+            Amândouă trebuie completate.
+          </p>
+
+          <div class="pair pair__head">
+            <span>Română</span><span>English</span>
+          </div>
+
+          <div class="pair">
+            <label class="field"><span class="field__label">Numele piesei</span>
+              <input type="text" id="ro-name" maxlength="60"></label>
+            <label class="field"><span class="field__label">Name</span>
+              <input type="text" id="en-name" maxlength="60"></label>
+          </div>
+
+          <div class="pair">
+            <label class="field"><span class="field__label">Subtitlu scurt</span>
+              <input type="text" id="ro-tagline" maxlength="80">
+              <span class="field__note">Rândul mic de sub nume, în galerie.</span></label>
+            <label class="field"><span class="field__label">Short subtitle</span>
+              <input type="text" id="en-tagline" maxlength="80"></label>
+          </div>
+
+          <div class="pair">
+            <label class="field"><span class="field__label">Descrierea</span>
+              <textarea id="ro-description" rows="5" maxlength="600"></textarea></label>
+            <label class="field"><span class="field__label">Description</span>
+              <textarea id="en-description" rows="5" maxlength="600"></textarea></label>
+          </div>
+
+          <div class="pair">
+            <label class="field"><span class="field__label">Materiale</span>
+              <input type="text" id="ro-materials" maxlength="160">
+              <span class="field__note">Metalul și pietrele, cât mai exact.</span></label>
+            <label class="field"><span class="field__label">Materials</span>
+              <input type="text" id="en-materials" maxlength="160"></label>
+          </div>
+        </section>
+
+        <!-- DETALII -->
+        <section class="block">
+          <h3 class="block__title">Detalii</h3>
+          <div class="row">
+            <label class="field field--third"><span class="field__label">Ce fel de piesă e</span>
+              <select id="kind">
+                <option value="inel">Inel</option>
+                <option value="colier">Colier</option>
+                <option value="pandantiv">Pandantiv</option>
+                <option value="cercei">Cercei</option>
+                <option value="bratara">Brățară</option>
+              </select>
+              <span class="field__note">Alimentează filtrele de deasupra galeriei.</span></label>
+
+            <label class="field field--third"><span class="field__label">A fost expusă la</span>
+              <select id="exhibited"></select>
+              <span class="field__note">Apare ca etichetă pe poză.</span></label>
+
+            <div class="field field--third">
+              <span class="field__label">Stare</span>
+              <label class="check check--box">
+                <input type="checkbox" id="sold">
+                <span>Piesa a plecat</span>
+              </label>
+              <span class="field__note">Rămâne pe site, dar fără buton de comandă.</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══════════ CE SE PUBLICĂ ══════════ -->
+<div class="modal" id="confirm" hidden>
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="cf-title">
+    <h2 id="cf-title">Gata de publicat</h2>
+    <ul class="changes" id="changes"></ul>
+    <label class="field"><span class="field__label">Ce ai schimbat (opțional)</span>
+      <input type="text" id="cf-msg" maxlength="110" placeholder="ex. Am adăugat inelul cu piatră albastră"></label>
+    <p class="cf__note">Modificarea apare pe site în mai puțin de un minut.</p>
+    <div class="cf__cta">
+      <button class="btn btn--ghost" type="button" data-close>Încă nu</button>
+      <button class="btn btn--primary" type="button" id="cf-go">Publică pe site</button>
+    </div>
+    <p class="gate__err" id="cf-err" hidden></p>
+  </div>
+</div>
+
+<script src="../assets/js/products.js?admin=1"></script>
+<script src="admin.js?v=1"></script>
+</body>
+</html>

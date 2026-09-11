@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════════════
+   Panoul de administrare — HUDA'S JEWELRY
+   Aceleași fonturi ca site-ul, dar mai dens și mai evident:
+   e o unealtă de lucru, nu o vitrină.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #f6f4f1;
+  --panel: #ffffff;
+  --ink: #1b1714;
+  --soft: #5a5149;
+  --line: #e2dbd1;
+  --line-soft: #efe9e1;
+  --accent: #87582f;
+  --accent-dp: #6b4423;
+  --danger: #9b2c2c;
+  --ok: #2f6b3f;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--sans); font-weight: 300; font-size: 15px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+body.is-locked { overflow: hidden; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; margin: 0; line-height: 1.15; }
+img { max-width: 100%; height: auto; display: block; }
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+/* ── butoane ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 44px; padding: .6rem 1.15rem; cursor: pointer;
+  font-family: var(--sans); font-size: .78rem; font-weight: 400;
+  letter-spacing: .1em; text-transform: uppercase; text-decoration: none;
+  border: 1px solid transparent; border-radius: 2px; background: none; color: var(--ink);
+  transition: background .15s, border-color .15s, color .15s, opacity .15s;
+}
+.btn--primary { background: var(--ink); color: #fff; }
+.btn--primary:hover:not(:disabled) { background: var(--accent-dp); }
+.btn--ghost { border-color: var(--line); }
+.btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn--danger { border: 1px solid var(--line); color: var(--danger); }
+.btn--danger:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn--small { min-height: 36px; padding: .4rem .8rem; font-size: .7rem; }
+.btn--full { width: 100%; }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── câmpuri ── */
+.field { display: flex; flex-direction: column; gap: .3rem; }
+.field__label { font-size: .68rem; letter-spacing: .13em; text-transform: uppercase; color: var(--soft); }
+.field__note { font-size: .74rem; color: var(--soft); line-height: 1.4; }
+.field input[type=text], .field input[type=password], .field select, .field textarea {
+  font-family: var(--sans); font-size: .95rem; font-weight: 300; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 2px;
+  padding: .6rem .7rem; min-height: 44px; width: 100%;
+}
+.field textarea { resize: vertical; line-height: 1.5; min-height: 7rem; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+.field--third { flex: 1 1 14rem; }
+
+.check { display: flex; align-items: center; gap: .55rem; font-size: .88rem; cursor: pointer; min-height: 44px; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.check--box { min-height: 40px; }
+
+/* ── intrarea ── */
+.gate { min-height: 100dvh; display: grid; place-items: center; padding: 1.5rem; }
+/* `display: grid` de mai sus bate regula implicită a browserului
+   `[hidden] { display: none }`, deci ecranul de parolă ar rămâne vizibil
+   peste panou după autentificare. Aceeaşi capcană e tratată şi la .modal. */
+.gate[hidden] { display: none; }
+.gate__box {
+  width: min(100%, 24rem); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 3px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem;
+}
+.gate__title { font-size: 1.9rem; }
+.gate__lede { margin: -.5rem 0 .25rem; color: var(--soft); font-size: .9rem; }
+.gate__err {
+  margin: 0; padding: .6rem .75rem; border-radius: 2px;
+  background: #fbeaea; color: var(--danger); font-size: .85rem;
+}
+
+/* ── bara de sus ── */
+.bar {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: .7rem clamp(.9rem, 3vw, 1.5rem);
+  background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.bar__brand { display: flex; align-items: baseline; gap: .6rem; margin-right: auto; }
+.bar__brand strong { font-family: var(--serif); font-size: 1.25rem; font-weight: 400; }
+.bar__brand span { font-size: .78rem; color: var(--soft); }
+.bar__right { display: flex; align-items: center; gap: .5rem; }
+.bar__status { font-size: .82rem; color: var(--soft); }
+.bar__status.is-ok { color: var(--ok); }
+.bar__status.is-err { color: var(--danger); }
+.bar__status.is-busy { color: var(--accent); }
+
+/* ── aşezarea ── */
+.layout {
+  display: grid; grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
+  gap: clamp(.9rem, 2vw, 1.5rem);
+  padding: clamp(.9rem, 2vw, 1.5rem);
+  align-items: start; max-width: 1500px; margin: 0 auto;
+}
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+.side {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+  padding: 1rem; position: sticky; top: 4.6rem;
+}
+@media (max-width: 900px) { .side { position: static; } }
+.side__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.side__head h2 { font-size: 1.3rem; }
+.side__hint { font-size: .75rem; color: var(--soft); margin: .4rem 0 .8rem; }
+
+.plist { list-style: none; margin: 0; padding: 0; max-height: 62vh; overflow: auto; }
+.plist li {
+  display: flex; align-items: center; gap: .5rem;
+  border-top: 1px solid var(--line-soft); padding: .3rem 0;
+}
+.plist li:last-child { border-bottom: 1px solid var(--line-soft); }
+.pitem {
+  flex: 1; display: flex; align-items: center; gap: .6rem; min-width: 0;
+  background: none; border: 0; padding: .35rem; cursor: pointer;
+  font: inherit; color: inherit; text-align: left; border-radius: 2px;
+}
+.pitem:hover { background: var(--bg); }
+.pitem.is-on { background: var(--ink); color: #fff; }
+.pitem__thumb {
+  width: 38px; height: 38px; flex: none; object-fit: contain;
+  background: #fff; border: 1px solid var(--line); border-radius: 2px; padding: 2px;
+}
+.pitem__name { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pitem__flag { font-size: .66rem; color: var(--danger); }
+.pitem.is-on .pitem__flag { color: #f0b0b0; }
+.pmove { display: flex; flex-direction: column; gap: 1px; }
+.pmove button {
+  width: 26px; height: 20px; line-height: 1; cursor: pointer;
+  background: none; border: 1px solid var(--line); border-radius: 2px;
+  color: var(--soft); font-size: .6rem;
+}
+.pmove button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.pmove button:disabled { opacity: .25; cursor: not-allowed; }
+
+/* ── editorul ── */
+.editor {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+  padding: clamp(1rem, 2.5vw, 1.75rem); min-height: 60vh;
+}
+.editor__empty { color: var(--soft); margin: 0; }
+.editor__top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.editor__top h2 { font-size: 1.7rem; }
+
+.block { margin-top: 2rem; padding-top: 1.4rem; border-top: 1px solid var(--line-soft); }
+.block:first-of-type { margin-top: 1.4rem; }
+.block__title { font-size: 1.2rem; margin-bottom: .35rem; }
+.block__hint { font-size: .82rem; color: var(--soft); margin: 0 0 1rem; max-width: 46rem; }
+.block__hint--tight { margin: -.4rem 0 1rem 1.75rem; }
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+.pair__head {
+  margin-bottom: .4rem; font-size: .68rem; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--accent);
+}
+.row { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+/* ── pozele ── */
+.drop {
+  display: flex; align-items: center; justify-content: center; gap: .8rem; flex-wrap: wrap;
+  border: 1.5px dashed var(--line); border-radius: 3px; padding: 1.4rem;
+  transition: border-color .15s, background .15s;
+}
+.drop.is-over { border-color: var(--accent); background: #fdf7f1; }
+.drop__or { font-size: .84rem; color: var(--soft); }
+
+.shots { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .8rem; }
+.shot { width: 140px; }
+.shot__frame {
+  position: relative; background: #fff; border: 1px solid var(--line);
+  border-radius: 2px; aspect-ratio: 1/1; overflow: hidden;
+}
+.shot__frame img { width: 100%; height: 100%; object-fit: contain; padding: 6%; }
+.shot__badge {
+  position: absolute; top: 4px; left: 4px;
+  background: var(--ink); color: #fff; font-size: .6rem; letter-spacing: .1em;
+  padding: .15rem .4rem; border-radius: 2px;
+}
+.shot__new { background: var(--ok); }
+.shot__tools { display: flex; gap: 3px; margin-top: .35rem; }
+.shot__tools button {
+  flex: 1; min-height: 30px; cursor: pointer; font-size: .68rem;
+  background: none; border: 1px solid var(--line); border-radius: 2px; color: var(--soft);
+}
+.shot__tools button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.shot__tools button:disabled { opacity: .25; cursor: not-allowed; }
+.shot__tools .is-del:hover { border-color: var(--danger); color: var(--danger); }
+.shot__size { font-size: .68rem; color: var(--soft); text-align: center; margin: .2rem 0 0; }
+
+/* ── fereastra de confirmare ── */
+.modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 1.25rem; }
+.modal[hidden] { display: none; }
+.modal__scrim { position: absolute; inset: 0; background: rgba(27,23,20,.55); }
+.modal__panel {
+  position: relative; z-index: 1; width: min(100%, 30rem);
+  background: var(--panel); border-radius: 3px; padding: 1.75rem;
+  display: flex; flex-direction: column; gap: 1rem;
+  max-height: 85vh; overflow: auto;
+}
+.modal__panel h2 { font-size: 1.6rem; }
+.changes { list-style: none; margin: 0; padding: 0; font-size: .9rem; }
+.changes li { padding: .45rem 0; border-top: 1px solid var(--line-soft); display: flex; gap: .5rem; }
+.changes li:last-child { border-bottom: 1px solid var(--line-soft); }
+.changes .tag { font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; padding: .1rem .4rem; border-radius: 2px; flex: none; height: fit-content; }
+.tag--add { background: #e5f0e8; color: var(--ok); }
+.tag--edit { background: #f5ece2; color: var(--accent-dp); }
+.tag--del { background: #fbeaea; color: var(--danger); }
+.cf__note { font-size: .8rem; color: var(--soft); margin: 0; }
+.cf__cta { display: flex; gap: .5rem; justify-content: flex-end; }

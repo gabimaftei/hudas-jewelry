@@ -4,7 +4,13 @@
    Fiecare piesă este unicat. Designul, odată prezentat, nu se repetă
    — așa că nu există stoc, doar piese.
 
-   Ca să adaugi o piesă, copiază un bloc și schimbă câmpurile.
+   DE OBICEI NU E NEVOIE SĂ UMBLI AICI. Piesele se adaugă și se schimbă
+   din panoul de la /admin. Prima salvare din panou rescrie fișierul ăsta
+   întreg — datele se păstrează, dar comentariile de mai jos se pierd.
+   Ce urmează e util doar dacă vrei să înțelegi forma datelor sau să
+   repari ceva de mână.
+
+   Ca să adaugi o piesă de mână, copiază un bloc și schimbă câmpurile.
 
    id         : slug scurt, fără spații. E și prefixul fișierelor foto.
                 Site-ul caută assets/images/<id>-1.jpg, <id>-2.jpg, …
