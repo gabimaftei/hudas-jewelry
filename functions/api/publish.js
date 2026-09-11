@@ -5,10 +5,13 @@
    tokenul de GitHub, ca secret. Panoul din browser nu-l vede
    niciodată; el trimite doar parola și conținutul.
 
-   Are nevoie de trei variabile de mediu (vezi secțiunea 9 din README):
+   Are nevoie de două secrete (vezi secțiunea 8 din README):
      ADMIN_PASSWORD  parola cu care intră ea în panou
      GITHUB_TOKEN    token cu drept de scriere pe repo (Contents: RW)
-     GITHUB_REPO     ex. gabimaftei/hudas-jewelry
+
+   Repo-ul e scris mai jos, în cod: nu e o informație secretă, și e un
+   lucru mai puțin de configurat greșit. Dacă se redenumește vreodată,
+   se poate suprascrie cu variabila GITHUB_REPO.
 
    Tot ce se schimbă intră într-un singur commit — textele și pozele
    deodată — ca să nu existe niciun moment în care site-ul are piesa
@@ -16,6 +19,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const API = 'https://api.github.com';
+const REPO = 'gabimaftei/hudas-jewelry';
 const BRANCH = 'main';
 const IMG_DIR = 'assets/images/';
 
@@ -129,8 +133,8 @@ function checkPayload(body) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!env.ADMIN_PASSWORD || !env.GITHUB_TOKEN || !env.GITHUB_REPO) {
-    return json({ error: 'Panoul nu e configurat complet. Vezi secțiunea 9 din README.' }, 500);
+  if (!env.ADMIN_PASSWORD || !env.GITHUB_TOKEN) {
+    return json({ error: 'Panoul nu e configurat complet: lipsește ADMIN_PASSWORD sau GITHUB_TOKEN.' }, 500);
   }
 
   let body;
@@ -151,7 +155,7 @@ export async function onRequestPost({ request, env }) {
   const problem = checkPayload(body);
   if (problem) return json({ error: problem }, 400);
 
-  const repo = env.GITHUB_REPO;
+  const repo = env.GITHUB_REPO || REPO;
   const branch = env.GITHUB_BRANCH || BRANCH;
 
   try {

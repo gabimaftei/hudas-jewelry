@@ -254,14 +254,20 @@ Workers & Pages → Create → Pages → Connect to Git → alegi `hudas-jewelry
 Fără build command, output directory `/`. Funcția din `functions/` e găsită
 singură.
 
-**3. Cele trei variabile.** În Cloudflare, Settings → Environment variables,
-pentru Production:
+**3. Cele două secrete.** Numele repo-ului e scris în `publish.js`, deci rămân
+doar două lucruri de pus. Din terminal, în folderul proiectului:
 
-| Nume | Valoare |
-|---|---|
-| `ADMIN_PASSWORD` | parola pe care i-o dai ei |
-| `GITHUB_TOKEN` | tokenul de la pasul 1 — bifează **Encrypt** |
-| `GITHUB_REPO` | `gabimaftei/hudas-jewelry` |
+```bash
+npx wrangler@3 pages secret put ADMIN_PASSWORD --project-name hudas-jewelry
+npx wrangler@3 pages secret put GITHUB_TOKEN --project-name hudas-jewelry
+```
+
+Fiecare comandă întreabă valoarea și o citește fără s-o afișeze. Se pot pune și
+din dashboard: Settings → Variables and Secrets → Add, tip **Secret**.
+
+**Tokenul nu trebuie să ajungă nicăieri altundeva** — nici într-un fișier din
+proiect, nici într-o conversație. Dacă totuși ajunge, se șterge de pe GitHub și
+se face altul; e treabă de un minut.
 
 **4. Domeniul.** Tot în Cloudflare, Custom domains. După ce e legat, schimbă
 cele trei adrese absolute din `index.html` (`og:image`, `og:url`,
@@ -276,8 +282,9 @@ Cloudflare merge.
 
 - **„Parolă greșită" deși e corectă** → `ADMIN_PASSWORD` nu e setată pe
   Production, sau are un spațiu la capăt.
-- **„Panoul nu e configurat complet"** → lipsește una dintre cele trei
-  variabile.
+- **„Panoul nu e configurat complet"** → lipsește `ADMIN_PASSWORD` sau
+  `GITHUB_TOKEN`. Verifică cu
+  `npx wrangler@3 pages secret list --project-name hudas-jewelry`.
 - **„Nu s-a putut salva: GitHub … 403"** → tokenul a expirat sau n-are
   Contents: Read and write pe repo-ul ăsta.
 - **A salvat, dar nu se vede pe site** → uită-te în Cloudflare la
