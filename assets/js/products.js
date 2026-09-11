@@ -12,7 +12,7 @@ const PRODUCTS = [
     "id": "inel-sculptural",
     "photos": 3,
     "kind": "inel",
-    "sold": true,
+    "sold": false,
     "exhibited": "sijw",
     "ro": {
       "name": "Inel sculptural",
