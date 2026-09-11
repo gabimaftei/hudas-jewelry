@@ -1,0 +1,13 @@
+{
+  // Configurația Worker-ului care găzduieşte site-ul.
+  // Numele trebuie să rămână acelaşi cu al Worker-ului din Cloudflare,
+  // altfel următorul build ar crea unul nou, la altă adresă.
+  "name": "hudas-jewelry",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    // Fişierele site-ului stau în rădăcina repo-ului.
+    "directory": "./",
+    "binding": "ASSETS"
+  }
+}

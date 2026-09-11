@@ -147,11 +147,22 @@ Content-Security-Policy se poartă altfel și unele lucruri par stricate degeaba
 
 ## 6. E online
 
-**Live la <https://gabimaftei.github.io/hudas-jewelry/>**
+**Live la <https://hudas-jewelry.mafteigabriele.workers.dev/>**
 
-Găzduit gratuit pe GitHub Pages, din
-<https://github.com/gabimaftei/hudas-jewelry> (contul `gabimaftei`, branch-ul
-`main`). Fără build — Pages servește fișierele așa cum sunt.
+Găzduit gratuit pe **Cloudflare Workers**, legat de
+<https://github.com/gabimaftei/hudas-jewelry> (branch-ul `main`).
+
+Site-ul e static: fișierele din repo se servesc ca atare, de pe CDN, fără
+build. Worker-ul nu se atinge de ele — primește doar cererile care nu
+nimeresc un fișier, adică exclusiv `/api/publish`, salvările din panou.
+Configurarea e în `wrangler.jsonc`, punctul de intrare în `worker.js`, iar
+`.assetsignore` ține codul și documentația în afara domeniului public.
+
+> **De schimbat când cumperi domeniul.** Cele trei adrese absolute din
+> `index.html` — `og:image`, `og:url`, `canonical` — arată către adresa
+> `workers.dev` de mai sus. Dacă rămân aşa după ce legi domeniul, site-ul
+> merge, dar previzualizarea linkului pe Instagram şi WhatsApp arată adresa
+> veche.
 
 ### Cum se publică o modificare
 
@@ -221,16 +232,16 @@ formular. Ghidul scris pentru ea e în [GHID.md](GHID.md).
 
 ```
   /admin  ──POST cu parola──▶  /api/publish  ──token GitHub──▶  repo
- (browser)                    (funcție pe server)                 │
+ (browser)                     (worker.js)                        │
                                                                   ▼
                                                         redeploy automat
 ```
 
 Tokenul de GitHub stă **numai** în funcție, ca secret pe server. Panoul din
 browserul ei nu-l vede niciodată; el trimite doar parola și conținutul. De
-aceea panoul are nevoie de o gazdă care poate rula funcții — GitHub Pages
-servește doar fișiere, deci site-ul se mută pe **Cloudflare Pages** (gratuit,
-și acolo se leagă și domeniul).
+aceea panoul are nevoie de o gazdă care poate rula cod — GitHub Pages
+servește doar fișiere, deci site-ul stă pe **Cloudflare Workers** (gratuit,
+și tot acolo se leagă domeniul).
 
 Tot ce se schimbă într-o salvare — texte și poze — intră într-un **singur
 commit**, ca să nu existe o clipă în care piesa e scrisă dar poza încă nu.
@@ -249,10 +260,11 @@ Personal access tokens → Fine-grained tokens → Generate new token.
 Only select repositories → `hudas-jewelry`. La Permissions → Repository
 permissions → **Contents: Read and write**. Atât, nimic altceva.
 
-**2. Site-ul pe Cloudflare Pages.** Cont gratuit pe cloudflare.com →
-Workers & Pages → Create → Pages → Connect to Git → alegi `hudas-jewelry`.
-Fără build command, output directory `/`. Funcția din `functions/` e găsită
-singură.
+**2. Site-ul pe Cloudflare.** Deja făcut: Workers & Pages → Create →
+importă repo-ul. Atenție, interfaţa creează un **Worker**, nu un proiect
+Pages — de aceea rutarea către funcţie e explicită, în `worker.js`, şi nu
+prin convenţia `functions/` a lui Pages. Folderul `functions/` a rămas acolo
+doar fiindcă `worker.js` importă din el.
 
 **3. Cele două secrete.** Numele repo-ului e scris în `publish.js`, deci rămân
 doar două lucruri de pus. Din terminal, în folderul proiectului:
@@ -273,10 +285,10 @@ se face altul; e treabă de un minut.
 cele trei adrese absolute din `index.html` (`og:image`, `og:url`,
 `canonical`), altfel previzualizarea linkului rămâne pe adresa veche.
 
-GitHub Pages poate rămâne pornit ca oglindă, dar **panoul nu merge acolo** —
-`/api/publish` întoarce 404, fiindcă Pages nu rulează funcții. Ca să nu existe
-două adrese vii cu conținut identic, cel mai curat e să-l oprești după ce
-Cloudflare merge.
+**Opreşte GitHub Pages** după ce Cloudflare merge. Altfel rămân două adrese
+vii cu acelaşi conţinut — rău pentru Google — iar pe cea de pe Pages panoul
+nu funcţionează deloc: `/api/publish` întoarce 404, fiindcă GitHub Pages
+serveşte doar fişiere, nu rulează cod.
 
 ### Dacă ceva nu merge
 

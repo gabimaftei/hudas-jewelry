@@ -1,0 +1,8 @@
+# Ce nu trebuie servit ca fişier al site-ului: codul serverului,
+# configurările şi documentaţia. Nimic secret — repo-ul e public —
+# dar n-au ce căuta pe domeniul public.
+worker.js
+wrangler.jsonc
+functions/
+.claude/
+*.md

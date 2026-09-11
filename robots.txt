@@ -1,4 +1,2 @@
 User-agent: *
 Disallow: /admin
-
-Sitemap: https://gabimaftei.github.io/hudas-jewelry/
