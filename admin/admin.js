@@ -533,11 +533,17 @@
           }
           images[target] = await blobToBase64(blob);
         }
-        products.push({
+        var rec = {
           id: p.id, photos: p.shots.length, kind: p.kind,
           sold: !!p.sold, exhibited: p.exhibited || null,
           ro: p.ro, en: p.en,
-        });
+        };
+        /* Rotirea din fotografii nu se editează din panou, dar trebuie dusă
+           mai departe: catalogul se rescrie întreg la fiecare salvare, deci
+           orice câmp nepurtat aici s-ar pierde tăcut. */
+        if (p.spin) rec.spin = p.spin;
+        if (p.spinReverse) rec.spinReverse = true;
+        products.push(rec);
       }
 
       /* pozele rămase fără piesă */

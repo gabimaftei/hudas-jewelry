@@ -106,6 +106,30 @@ portofoliu, cu mențiunea „Piesă plecată”, iar butonul de comandă se stin
 Titlul secțiunii nu conține un număr, intenționat: „Treisprezece piese" ar fi
 rămas în urmă la prima piesă adăugată din panou.
 
+### Rotirea din fotografii
+
+O piesă poate avea, pe lângă fotografii, o **rotire**: 36 de cadre făcute din
+10 în 10 grade, pe care vizitatorul le derulează trăgând cu degetul. Nu e 3D —
+sunt fotografii, de asta argintul rămâne argint.
+
+Cadrele stau în `assets/spins/<id>/01.jpg … 36.jpg`, iar piesa primeşte
+`"spin": 36` în catalog. Dacă se roteşte în sensul greşit, se adaugă
+`"spinReverse": true` — se întâmplă când discul a fost rotit invers la
+fotografiere.
+
+Cum se fotografiază, cu ce ai prin casă: [FOTOGRAFIERE.md](FOTOGRAFIERE.md).
+Discul de printat, care ţine locul platformei rotative, e în
+`tools/disc-rotire.png` (regenerabil cu `tools/disc-rotire.py`).
+
+Cadrele se încarcă întreţesut — întâi din şase în şase, apoi se îndesesc —
+deci piesa se poate roti după prima jumătate de secundă, chiar dacă restul
+mai vin din urmă. Se încarcă doar când vizitatorul deschide piesa şi apasă
+pe rotire, niciodată în galerie.
+
+**Rotirea nu se editează din panou**, dar panoul o duce mai departe: fără
+asta, prima salvare a Hudei ar şterge câmpul, fiindcă el rescrie catalogul
+întreg.
+
 ---
 
 ## 4. Cum se comandă

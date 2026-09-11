@@ -87,6 +87,9 @@
       'pm.note': 'Se deschide conversația cu @hudasjewelry. Spune-i că e vorba de „{name}” și îți răspunde cu prețul și cu detaliile.',
       'pm.noteSold': 'Piesa asta nu mai e disponibilă, dar rămâne aici. Scrie-i dacă vrei ceva pornit de la ea.',
       'pm.photoOf': 'Fotografia {n} din {total}',
+      'pm.spin': 'Rotește piesa',
+      'pm.spinHint': 'Trage ca s-o rotești',
+      'pm.spinLoading': 'Se încarcă rotirea…',
       'open': 'Vezi piesa',
     },
 
@@ -162,6 +165,9 @@
       'pm.note': 'This opens a chat with @hudasjewelry. Tell her it is about “{name}” and she will come back with the price and the details.',
       'pm.noteSold': 'This one has found its person, but it stays here. Message her if you would like something built from it.',
       'pm.photoOf': 'Photo {n} of {total}',
+      'pm.spin': 'Turn the piece',
+      'pm.spinHint': 'Drag to turn',
+      'pm.spinLoading': 'Loading the turn…',
       'open': 'View piece',
     },
   };
@@ -307,7 +313,172 @@
   var lastFocus  = null;
   var currentPid = null;
 
+  /* ─────────────── rotirea din fotografii ───────────────
+     Nu e 3D: sunt 36 de fotografii făcute din 10 în 10 grade, pe care
+     le derulăm la tras cu degetul. Arată fotorealist fiindcă sunt
+     fotografii — argintul rămâne argint.
+
+     Cadrele se încarcă întreţesut, nu în ordine: întâi din şase în şase,
+     apoi se îndesesc. Aşa piesa se poate roti după prima jumătate de
+     secundă, chiar dacă restul mai vin din urmă. */
+  var spin = null;
+
+  function spinFrame(p, i) {
+    return 'assets/spins/' + p.id + '/' + String(i + 1).padStart(2, '0') + '.jpg';
+  }
+
+  /* ordinea de încărcare: 1, 7, 13… apoi la jumătate, şi tot aşa */
+  function loadOrder(n) {
+    var order = [], seen = {}, step = Math.max(1, Math.ceil(n / 6)), i;
+    while (step >= 1) {
+      for (i = 0; i < n; i += step) {
+        if (!seen[i]) { seen[i] = 1; order.push(i); }
+      }
+      if (step === 1) break;
+      step = Math.floor(step / 2);
+    }
+    for (i = 0; i < n; i++) if (!seen[i]) { seen[i] = 1; order.push(i); }
+    return order;
+  }
+
+  function stopSpin() {
+    if (!spin) return;
+    if (spin.raf) cancelAnimationFrame(spin.raf);
+    spin = null;
+  }
+
+  function showSpin(p) {
+    stopSpin();
+    var stage = $('#pm-stage');
+    stage.textContent = '';
+
+    var n = p.spin;
+    var box = document.createElement('div');
+    box.className = 'spin';
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label', (p[lang] || p.ro).name + ' — ' + t('pm.spin'));
+    box.tabIndex = 0;
+
+    var frames = [], ready = [];
+    for (var i = 0; i < n; i++) {
+      var im = document.createElement('img');
+      im.className = 'spin__f';
+      im.alt = '';
+      im.decoding = 'async';
+      frames.push(im);
+      ready.push(false);
+      box.appendChild(im);
+    }
+
+    var hint = document.createElement('p');
+    hint.className = 'spin__hint';
+    hint.textContent = t('pm.spinLoading');
+    box.appendChild(hint);
+
+    var bar = document.createElement('span');
+    bar.className = 'spin__bar';
+    box.appendChild(bar);
+
+    stage.appendChild(box);
+
+    spin = { p: p, n: n, frames: frames, ready: ready, at: 0, box: box, hint: hint, bar: bar,
+             loaded: 0, raf: 0, vel: 0 };
+
+    /* arată cadrul cel mai apropiat care chiar s-a încărcat */
+    function paint() {
+      var want = ((Math.round(spin.at) % n) + n) % n;
+      var best = -1;
+      for (var d = 0; d < n; d++) {
+        if (spin.ready[(want + d) % n]) { best = (want + d) % n; break; }
+        if (spin.ready[(want - d + n) % n]) { best = (want - d + n) % n; break; }
+      }
+      if (best < 0) return;
+      for (var k = 0; k < n; k++) frames[k].classList.toggle('is-on', k === best);
+    }
+
+    /* încărcarea întreţesută */
+    var order = loadOrder(n), oi = 0;
+    function pump() {
+      if (!spin || oi >= order.length) return;
+      var idx = order[oi++];
+      var img = frames[idx];
+      img.onload = function () {
+        if (!spin) return;
+        spin.ready[idx] = true;
+        spin.loaded++;
+        spin.bar.className = 'spin__bar is-at-' + Math.min(10, Math.round(spin.loaded / n * 10));
+        if (spin.loaded === 1) { paint(); spin.hint.textContent = t('pm.spinHint'); }
+        else paint();
+        if (spin.loaded === n) spin.bar.className = 'spin__bar is-done';
+        pump();
+      };
+      img.onerror = function () { if (spin) pump(); };
+      img.src = spinFrame(p, idx);
+    }
+    pump(); pump(); pump();
+
+    /* tragerea */
+    var dragging = false, lastX = 0, startAt = 0, moved = 0;
+
+    function turnBy(dx) {
+      var w = box.clientWidth || 1;
+      /* o tragere cât lăţimea cadrului = o rotaţie completă,
+         la fel pe telefon şi pe ecran mare */
+      var delta = (dx / w) * n * (p.spinReverse ? 1 : -1);
+      spin.at = spin.at + delta;
+      paint();
+    }
+
+    box.addEventListener('pointerdown', function (e) {
+      if (!spin) return;
+      dragging = true; moved = 0;
+      lastX = e.clientX; startAt = spin.at; spin.vel = 0;
+      if (spin.raf) { cancelAnimationFrame(spin.raf); spin.raf = 0; }
+      box.classList.add('is-dragging');
+      box.setPointerCapture && box.setPointerCapture(e.pointerId);
+      hint.classList.add('is-gone');
+    });
+    box.addEventListener('pointermove', function (e) {
+      if (!dragging || !spin) return;
+      var dx = e.clientX - lastX;
+      lastX = e.clientX;
+      moved += Math.abs(dx);
+      spin.vel = dx;
+      turnBy(dx);
+    });
+    function release() {
+      if (!dragging || !spin) return;
+      dragging = false;
+      box.classList.remove('is-dragging');
+      /* puţină inerţie, dacă vizitatorul n-a cerut mai puţină mişcare */
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var v = spin.vel;
+      (function glide() {
+        if (!spin || dragging) return;
+        v *= 0.93;
+        if (Math.abs(v) < 0.4) { spin.raf = 0; return; }
+        turnBy(v);
+        spin.raf = requestAnimationFrame(glide);
+      })();
+    }
+    box.addEventListener('pointerup', release);
+    box.addEventListener('pointercancel', release);
+    box.addEventListener('lostpointercapture', release);
+
+    /* de la tastatură */
+    box.addEventListener('keydown', function (e) {
+      if (!spin) return;
+      if (e.key === 'ArrowLeft') { spin.at -= 1; paint(); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { spin.at += 1; paint(); e.preventDefault(); }
+    });
+
+    $$('#pm-thumbs button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.spin === '1'));
+    });
+  }
+
   function showPhoto(p, n) {
+    stopSpin();
     var stage = $('#pm-stage');
     var loc = p[lang] || p.ro;
     stage.textContent = '';
@@ -316,7 +487,7 @@
     img.alt = loc.name + ' — ' + fill(t('pm.photoOf'), { n: n, total: p.photos });
     stage.appendChild(img);
     $$('#pm-thumbs button').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n));
+      b.setAttribute('aria-pressed', String(b.dataset.spin !== '1' && Number(b.dataset.n) === n));
     });
   }
 
@@ -337,7 +508,7 @@
     /* miniaturile */
     var thumbs = $('#pm-thumbs');
     thumbs.textContent = '';
-    if (p.photos > 1) {
+    if (p.photos > 1 || p.spin) {
       for (var n = 1; n <= p.photos; n++) {
         (function (n) {
           var b = document.createElement('button');
@@ -351,6 +522,21 @@
           b.addEventListener('click', function () { showPhoto(p, n); });
           thumbs.appendChild(b);
         })(n);
+      }
+      /* rotirea, dacă piesa are cadrele fotografiate */
+      if (p.spin) {
+        var sb = document.createElement('button');
+        sb.type = 'button';
+        sb.dataset.spin = '1';
+        sb.className = 'pm__spinbtn';
+        sb.setAttribute('aria-label', t('pm.spin'));
+        sb.title = t('pm.spin');
+        sb.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">'
+          + '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"'
+          + ' d="M4.5 9.5a8 8 0 0 1 15 2.5M19.5 14.5a8 8 0 0 1-15-2.5"/>'
+          + '<path fill="currentColor" d="M3.2 6.2l1.6 3.9 3.9-1.6zM20.8 17.8l-1.6-3.9-3.9 1.6z"/></svg>';
+        sb.addEventListener('click', function () { showSpin(p); });
+        thumbs.appendChild(sb);
       }
     }
     showPhoto(p, 1);
@@ -405,6 +591,7 @@
   function closeModal() {
     if (!modal || modal.hidden) return;
     modal.hidden = true;
+    stopSpin();
     currentPid = null;
     if (history.replaceState && location.hash.indexOf('#piesa-') === 0) {
       history.replaceState(null, '', location.pathname + location.search);

@@ -6,3 +6,4 @@ wrangler.jsonc
 functions/
 .claude/
 *.md
+tools/

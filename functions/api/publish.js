@@ -72,6 +72,11 @@ function renderCatalogue(products, exhibitions) {
    panoul de la /admin, deci orice modificare făcută de mână aici se
    pierde la următoarea salvare. Pentru schimbări de conținut,
    folosește panoul.
+
+   Câmpuri care NU se editează din panou, dar sunt duse mai departe:
+     spin        câte cadre are rotirea (de obicei 36). Cadrele stau în
+                 assets/spins/<id>/01.jpg … Vezi FOTOGRAFIERE.md.
+     spinReverse true dacă rotirea merge în sensul greşit.
    --------------------------------------------------------------- */
 
 `;
@@ -111,6 +116,9 @@ function checkPayload(body) {
     if (!KINDS.includes(p.kind)) return `Tip necunoscut la ${p.id}: ${p.kind}`;
     if (!Number.isInteger(p.photos) || p.photos < 1 || p.photos > 12) return `Număr de poze greșit la ${p.id}`;
     if (p.exhibited !== null && !Object.hasOwn(exhibitions, p.exhibited)) return `Expoziție necunoscută la ${p.id}`;
+    if (p.spin !== undefined && (!Number.isInteger(p.spin) || p.spin < 8 || p.spin > 180)) {
+      return `Număr de cadre de rotire greșit la ${p.id}`;
+    }
     for (const lang of ['ro', 'en']) {
       const l = p[lang];
       if (!l || !l.name || !l.tagline) return `Lipsește numele sau subtitlul (${lang}) la ${p.id}`;
