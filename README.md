@@ -277,6 +277,23 @@ bijuteriei pe fundal alb, lasă 10% aer, duce latura lungă la maximum 1400px
 încadrată altfel decât toate celelalte. Dacă poza nu e pe alb — una purtată
 pe mână, de exemplu — algoritmul își dă seama singur și n-o taie.
 
+### Lista de expoziții
+
+Etichetele de pe piese („Romanian Jewelry Week 2026" etc.) vin din `EXHIBITIONS`,
+iar lista se editează din panou: adăugare, corectare de nume, ștergere. Fiecare
+expoziție are o cheie fixă, născută o dată din numele românesc (ex.
+`bucharest-jewelry-days-2027`). Piesele se leagă de cheie, nu de nume, deci o
+corectură de nume nu rupe nimic.
+
+Ștergerea unei expoziții folosite scoate eticheta de pe toate piesele ei — după
+confirmare. Funcția de pe server verifică cheile, lungimea numelor, că nicio
+piesă nu trimite spre o expoziție inexistentă, și scrie în catalog doar `ro` și
+`en`; engleza goală ia numele românesc.
+
+**Cronologia „Unde a fost văzută munca ei" nu vine din lista asta** — e scrisă
+în `index.html` și în `app.js` (cheile `tl.*`). O expoziție adăugată din panou
+apare ca etichetă pe piese, nu și acolo.
+
 ### Ce ai de făcut o dată, la început
 
 **1. Un token de GitHub.** github.com → Settings → Developer settings →

@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b221c'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='16' fill='%23c9a57e' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="../assets/css/fonts.css">
-<link rel="stylesheet" href="admin.css?v=1">
+<link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body>
 
@@ -149,7 +149,7 @@
 
             <label class="field field--third"><span class="field__label">A fost expusă la</span>
               <select id="exhibited"></select>
-              <span class="field__note">Apare ca etichetă pe poză.</span></label>
+              <span class="field__note">Apare ca etichetă pe poză. Nu e în listă? Adaug-o mai jos.</span></label>
 
             <div class="field field--third">
               <span class="field__label">Stare</span>
@@ -160,6 +160,24 @@
               <span class="field__note">Rămâne pe site, dar fără buton de comandă.</span>
             </div>
           </div>
+
+          <details class="exh" id="exh">
+            <summary>Expoziția nu e în listă? Adaug-o aici</summary>
+            <div class="exh__body">
+              <p class="block__hint">
+                Lista e aceeași pentru toate piesele. Numele apare ca etichetă pe poza piesei,
+                deci scrie-l scurt. Poți corecta și un nume existent — se schimbă peste tot.
+              </p>
+              <ul class="exh__list" id="exh-list"></ul>
+              <div class="exh__add">
+                <label class="field"><span class="field__label">Nume în română</span>
+                  <input type="text" id="exh-ro" maxlength="80" placeholder="ex. Romanian Jewelry Week 2027"></label>
+                <label class="field"><span class="field__label">Nume în engleză</span>
+                  <input type="text" id="exh-en" maxlength="80" placeholder="gol = la fel ca în română"></label>
+                <button class="btn btn--ghost" type="button" id="exh-add">+ Adaugă</button>
+              </div>
+            </div>
+          </details>
         </section>
 
       </div>
@@ -185,6 +203,6 @@
 </div>
 
 <script src="../assets/js/products.js?admin=1"></script>
-<script src="admin.js?v=1"></script>
+<script src="admin.js?v=2"></script>
 </body>
 </html>

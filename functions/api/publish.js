@@ -106,7 +106,19 @@ function checkPayload(body) {
   const { products, exhibitions, images, deletes } = body;
   if (!Array.isArray(products) || !products.length) return 'Catalogul e gol.';
   if (products.length > 200) return 'Prea multe piese.';
-  if (!exhibitions || typeof exhibitions !== 'object') return 'Lipsesc expozițiile.';
+  if (!exhibitions || typeof exhibitions !== 'object' || Array.isArray(exhibitions)) return 'Lipsesc expozițiile.';
+  const exKeys = Object.keys(exhibitions);
+  if (exKeys.length > 100) return 'Prea multe expoziții.';
+  for (const k of exKeys) {
+    const e = exhibitions[k];
+    if (!SAFE_ID.test(k)) return `Identificator de expoziție nepermis: ${k}`;
+    if (!e || typeof e.ro !== 'string' || !e.ro.trim() || e.ro.length > 80) {
+      return `O expoziție n-are nume în română sau numele e prea lung.`;
+    }
+    if (e.en !== undefined && (typeof e.en !== 'string' || e.en.length > 80)) {
+      return `Numele în engleză al expoziției „${e.ro}" nu e valid.`;
+    }
+  }
 
   const seen = new Set();
   for (const p of products) {
@@ -138,6 +150,18 @@ function checkPayload(body) {
   /* fiecare piesă trebuie să aibă toate pozele pe care le declară —
      fie deja în repo, fie printre cele trimise acum */
   return null;
+}
+
+/* În catalog ajung doar numele, curăţate: fără spaţii la capete, iar
+   engleza goală ia numele românesc. Orice alt câmp trimis se ignoră. */
+function cleanExhibitions(ex) {
+  const out = {};
+  for (const k of Object.keys(ex)) {
+    const ro = ex[k].ro.trim();
+    const en = typeof ex[k].en === 'string' ? ex[k].en.trim() : '';
+    out[k] = { ro, en: en || ro };
+  }
+  return out;
 }
 
 export async function onRequestPost({ request, env }) {
@@ -187,7 +211,7 @@ export async function onRequestPost({ request, env }) {
       path: 'assets/js/products.js',
       mode: '100644',
       type: 'blob',
-      content: renderCatalogue(body.products, body.exhibitions),
+      content: renderCatalogue(body.products, cleanExhibitions(body.exhibitions)),
     });
 
     /* pozele rămase fără piesă se scot din arbore */

@@ -62,6 +62,19 @@ vadă ce ai lucrat, dar nu mai are buton de comandă.
 fiecărei piese din listă. Prima din listă e prima pe site — pune în față ce
 vrei să vadă lumea întâi.
 
+**Dacă expoziția nu e în listă**, sub *„A fost expusă la"* apeși *„Expoziția nu
+e în listă? Adaug-o aici"*. Scrii numele în română — engleza o poți lăsa goală
+dacă e un nume propriu, ca „Romanian Jewelry Week 2027" — și apeși *Adaugă*.
+
+- Dacă piesa deschisă n-avea nicio expoziție, i-o pune singur. Dacă avea deja
+  una, nu i-o schimbă: o alegi tu din listă.
+- Din aceeași listă corectezi un nume greșit — se schimbă la toate piesele.
+- Cu `✕` scoți o expoziție. Dacă e folosită, panoul te întreabă înainte și îți
+  spune la câte piese dispare eticheta.
+
+Lista asta e doar pentru etichetele de pe piese. Secțiunea *„Unde a fost văzută
+munca ei"* de pe site nu se schimbă de aici — pentru ea, spune-i lui Gabi.
+
 ---
 
 ## Un link direct către o piesă

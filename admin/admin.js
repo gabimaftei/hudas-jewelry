@@ -29,6 +29,7 @@
   var exhibitions = {};
   var current = -1;
   var baseline = '';
+  var baselineExh = '';      // lista de expoziţii, aşa cum e pe site
 
   /* ─────────────── pornire ─────────────── */
   function load() {
@@ -49,6 +50,7 @@
       return copy;
     });
     baseline = snapshot();
+    baselineExh = JSON.stringify(exhibitions);
   }
 
   function snapshot() {
@@ -61,7 +63,9 @@
     }));
   }
 
-  function dirty() { return snapshot() !== baseline; }
+  function dirty() {
+    return snapshot() !== baseline || JSON.stringify(exhibitions) !== baselineExh;
+  }
 
   function slug(s) {
     return (s || '').toLowerCase()
@@ -246,6 +250,31 @@
     $('#kind').value = p.kind;
     $('#sold').checked = !!p.sold;
 
+    fillExhibited(p.exhibited || '');
+    drawExhibitions();
+
+    drawShots();
+    drawList();
+  }
+
+  /* ─────────────── expoziţiile ───────────────
+     Lista e comună tuturor pieselor. Cheia (ex. „rjw26") e ce se scrie în
+     catalog la fiecare piesă; numele e ce apare ca etichetă pe poză. Cheia
+     se naşte o dată, din numele românesc, şi nu se mai schimbă — aşa
+     corectarea unui nume nu rupe legătura cu piesele care îl folosesc. */
+  function hasExh(k) { return Object.prototype.hasOwnProperty.call(exhibitions, k); }
+
+  function freeExhKey(base) {
+    var k = base, n = 2;
+    while (hasExh(k)) k = base + '-' + (n++);
+    return k;
+  }
+
+  function usedBy(k) {
+    return items.filter(function (p) { return p.exhibited === k; }).length;
+  }
+
+  function fillExhibited(value) {
     var sel = $('#exhibited');
     sel.textContent = '';
     var none = document.createElement('option');
@@ -253,13 +282,95 @@
     sel.appendChild(none);
     Object.keys(exhibitions).forEach(function (k) {
       var o = document.createElement('option');
-      o.value = k; o.textContent = exhibitions[k].ro;
+      o.value = k; o.textContent = exhibitions[k].ro || '(fără nume)';
       sel.appendChild(o);
     });
-    sel.value = p.exhibited || '';
+    sel.value = hasExh(value) ? value : '';
+  }
 
-    drawShots();
-    drawList();
+  function drawExhibitions() {
+    var ul = $('#exh-list');
+    ul.textContent = '';
+    var keys = Object.keys(exhibitions);
+    if (!keys.length) {
+      var empty = document.createElement('li');
+      empty.className = 'exh__empty';
+      empty.textContent = 'Nicio expoziție încă.';
+      ul.appendChild(empty);
+    }
+    keys.forEach(function (k) {
+      var li = document.createElement('li');
+      li.className = 'exh__row';
+
+      ['ro', 'en'].forEach(function (l) {
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.maxLength = 80;
+        inp.value = exhibitions[k][l] || '';
+        inp.setAttribute('aria-label', (l === 'ro' ? 'Numele în română' : 'Numele în engleză'));
+        if (l === 'en') inp.placeholder = 'la fel ca în română';
+        inp.addEventListener('input', function () {
+          exhibitions[k][l] = inp.value;
+          if (l === 'ro') fillExhibited(items[current] ? (items[current].exhibited || '') : '');
+          touch();
+        });
+        li.appendChild(inp);
+      });
+
+      var n = usedBy(k);
+      var info = document.createElement('span');
+      info.className = 'exh__used';
+      info.textContent = n === 0 ? 'nefolosită' : n === 1 ? 'la o piesă' : 'la ' + n + ' piese';
+      li.appendChild(info);
+
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'exh__del';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', 'Scoate expoziția din listă');
+      del.addEventListener('click', function () {
+        var name = exhibitions[k].ro || 'expoziția fără nume';
+        var msg = n
+          ? 'Scoți „' + name + '" din listă?\n\nE folosită la ' + (n === 1 ? 'o piesă' : n + ' piese')
+            + ' — eticheta dispare de pe ' + (n === 1 ? 'ea' : 'ele') + '.'
+          : 'Scoți „' + name + '" din listă?';
+        if (!confirm(msg)) return;
+        items.forEach(function (p) { if (p.exhibited === k) p.exhibited = null; });
+        delete exhibitions[k];
+        fillExhibited(items[current] ? (items[current].exhibited || '') : '');
+        drawExhibitions();
+        touch();
+      });
+      li.appendChild(del);
+      ul.appendChild(li);
+    });
+  }
+
+  function addExhibition() {
+    var ro = $('#exh-ro').value.trim();
+    var en = $('#exh-en').value.trim();
+    if (!ro) { $('#exh-ro').focus(); return; }
+    var dup = Object.keys(exhibitions).filter(function (k) {
+      return (exhibitions[k].ro || '').trim().toLowerCase() === ro.toLowerCase();
+    })[0];
+    if (dup) { say('„' + ro + '" e deja în listă.', 'err'); return; }
+
+    var key = freeExhKey(slug(ro));
+    exhibitions[key] = { ro: ro, en: en || ro };
+    $('#exh-ro').value = '';
+    $('#exh-en').value = '';
+
+    /* O punem singuri la piesa deschisă doar dacă n-avea nicio expoziţie —
+       altfel am schimba pe tăcute o etichetă pe care ea a ales-o deja. */
+    var p = items[current];
+    var assigned = false;
+    if (p && !p.exhibited) { p.exhibited = key; assigned = true; }
+    fillExhibited(p ? (p.exhibited || '') : '');
+    drawExhibitions();
+    touch();
+    say(assigned
+      ? '„' + ro + '" a fost adăugată și pusă la piesa asta.'
+      : '„' + ro + '" a fost adăugată. Alege-o din listă la piesele unde a fost expusă.', 'ok');
   }
 
   function drawShots() {
@@ -355,7 +466,14 @@
       if (items[current]) { items[current].sold = this.checked; drawList(); touch(); }
     });
     $('#exhibited').addEventListener('change', function () {
-      if (items[current]) { items[current].exhibited = this.value || null; touch(); }
+      if (items[current]) { items[current].exhibited = this.value || null; drawExhibitions(); touch(); }
+    });
+
+    $('#exh-add').addEventListener('click', addExhibition);
+    ['#exh-ro', '#exh-en'].forEach(function (s) {
+      $(s).addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addExhibition(); }
+      });
     });
 
     $('#add').addEventListener('click', function () {
@@ -428,13 +546,16 @@
       var name = p.ro.name || '(fără nume)';
       if (!old) { out.push({ tag: 'add', text: name + ' — piesă nouă' }); return; }
       var nowShots = p.shots.map(function (s) { return s.kind === 'have' ? s.file : 'nou:' + s.token; });
-      var changedText = JSON.stringify([p.ro, p.en, p.kind, p.sold, p.exhibited]) !==
-                        JSON.stringify([old.ro, old.en, old.kind, old.sold, old.exhibited]);
+      var changedText = JSON.stringify([p.ro, p.en]) !== JSON.stringify([old.ro, old.en]);
+      var changedDetails = JSON.stringify([p.kind, p.sold, p.exhibited]) !==
+                           JSON.stringify([old.kind, old.sold, old.exhibited]);
       var changedPics = JSON.stringify(nowShots) !== JSON.stringify(old.shots);
-      if (changedText || changedPics) {
-        var what = changedText && changedPics ? 'text și poze'
-                 : changedText ? 'text' : 'poze';
-        out.push({ tag: 'edit', text: name + ' — ' + what });
+      if (changedText || changedDetails || changedPics) {
+        var parts = [];
+        if (changedText) parts.push('text');
+        if (changedDetails) parts.push('detalii');
+        if (changedPics) parts.push('poze');
+        out.push({ tag: 'edit', text: name + ' — ' + parts.join(', ') });
       }
     });
 
@@ -450,6 +571,19 @@
     if (JSON.stringify(orderBefore) !== JSON.stringify(orderNow)) {
       out.push({ tag: 'edit', text: 'S-a schimbat ordinea pieselor în galerie' });
     }
+
+    var exBefore = JSON.parse(baselineExh || '{}');
+    Object.keys(exhibitions).forEach(function (k) {
+      var nm = exhibitions[k].ro || '(fără nume)';
+      if (!Object.prototype.hasOwnProperty.call(exBefore, k)) {
+        out.push({ tag: 'add', text: 'Expoziție nouă în listă: ' + nm });
+      } else if (JSON.stringify(exBefore[k]) !== JSON.stringify(exhibitions[k])) {
+        out.push({ tag: 'edit', text: 'Expoziție redenumită: ' + nm });
+      }
+    });
+    Object.keys(exBefore).forEach(function (k) {
+      if (!hasExh(k)) out.push({ tag: 'del', text: 'Expoziție scoasă din listă: ' + (exBefore[k].ro || k) });
+    });
     return out;
   }
 
@@ -460,6 +594,9 @@
       if (!p.shots.length) bad.push('„' + n + '" nu are nicio poză.');
       if (!p.ro.name || !p.en.name) bad.push('„' + n + '" n-are numele în amândouă limbile.');
       if (!p.ro.tagline || !p.en.tagline) bad.push('„' + n + '" n-are subtitlul în amândouă limbile.');
+    });
+    Object.keys(exhibitions).forEach(function (k) {
+      if (!(exhibitions[k].ro || '').trim()) bad.push('O expoziție din listă n-are nume în română.');
     });
     return bad;
   }
@@ -554,6 +691,13 @@
         });
       });
 
+      /* numele goale în engleză iau numele românesc — la expoziţii e aproape
+         mereu un nume propriu, identic în ambele limbi */
+      Object.keys(exhibitions).forEach(function (k) {
+        exhibitions[k].ro = (exhibitions[k].ro || '').trim();
+        exhibitions[k].en = (exhibitions[k].en || '').trim() || exhibitions[k].ro;
+      });
+
       say('Trimit…', 'busy');
       var res = await fetch('/api/publish', {
         method: 'POST',
@@ -576,7 +720,9 @@
         });
       });
       baseline = snapshot();
+      baselineExh = JSON.stringify(exhibitions);
       touch();
+      drawExhibitions();
       drawShots();
       drawList();
       closeConfirm();

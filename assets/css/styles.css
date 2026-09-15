@@ -287,6 +287,8 @@ a { color: inherit; }
 
 .card__flag {
   position: absolute; top: .7rem; left: .7rem;
+  /* numele expoziţiilor le scrie acum Huda, deci pot fi oricât de lungi */
+  max-width: calc(100% - 1.4rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   background: rgba(255,255,255,.94); color: var(--accent-dp);
   font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
   padding: .35rem .6rem; border-radius: 100px; border: 1px solid var(--line);
