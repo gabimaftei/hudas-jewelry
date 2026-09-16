@@ -8,3 +8,10 @@ data/
 .claude/
 *.md
 tools/
+# Fişiere locale sau temporare: wrangler îşi scrie build-ul în .wrangler/
+# chiar în folderul publicat, iar .dev.vars are parolele de test.
+.wrangler/
+.dev.vars
+node_modules/
+.git/
+.gitignore

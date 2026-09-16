@@ -5,6 +5,15 @@
   "name": "hudas-jewelry",
   "main": "worker.js",
   "compatibility_date": "2026-09-01",
+  // Worker-ul stă în contul Cloudflare al Hudei, lângă domeniu: Cloudflare
+  // nu lasă un domeniu dintr-un cont să arate spre un Worker din altul.
+  "account_id": "77fe04201b2b97e2e7af9be776e3ab59",
+  // Site-ul se vede doar pe domeniu; adresa workers.dev e oprită.
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "hudasjewlery.com", "custom_domain": true },
+    { "pattern": "www.hudasjewlery.com", "custom_domain": true }
+  ],
   "assets": {
     // Fişierele site-ului stau în rădăcina repo-ului.
     "directory": "./",

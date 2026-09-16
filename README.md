@@ -183,7 +183,7 @@ Content-Security-Policy se poartă altfel și unele lucruri par stricate degeaba
 
 ## 6. E online
 
-**Live la <https://hudas-jewelry.mafteigabriele.workers.dev/>**
+**Live la <https://hudasjewlery.com/>** (şi `www.`)
 
 Găzduit gratuit pe **Cloudflare Workers**, legat de
 <https://github.com/gabimaftei/hudas-jewelry> (branch-ul `main`).
@@ -194,11 +194,13 @@ nimeresc un fișier, adică exclusiv `/api/publish`, salvările din panou.
 Configurarea e în `wrangler.jsonc`, punctul de intrare în `worker.js`, iar
 `.assetsignore` ține codul și documentația în afara domeniului public.
 
-> **De schimbat când cumperi domeniul.** Cele trei adrese absolute din
-> `index.html` — `og:image`, `og:url`, `canonical` — arată către adresa
-> `workers.dev` de mai sus. Dacă rămân aşa după ce legi domeniul, site-ul
-> merge, dar previzualizarea linkului pe Instagram şi WhatsApp arată adresa
-> veche.
+> **Domeniul şi Worker-ul stau în contul Cloudflare al Hudei**, nu în al
+> dezvoltatorului. Cloudflare nu lasă un domeniu dintr-un cont să arate spre un
+> Worker din alt cont, iar domeniul e plătit de ea. `account_id` şi cele două
+> domenii sunt scrise în `wrangler.jsonc`; adresa `workers.dev` e oprită.
+>
+> Domeniul se scrie **jew-l-ery** (`hudasjewlery.com`), nu ca pe Instagram
+> (`hudasjewelry`). Cine îl dă mai departe să-l copieze, nu să-l tasteze.
 
 ### Cum se publică o modificare
 
@@ -209,15 +211,9 @@ git add -A && git commit -m "Adaugă o piesă nouă" && git push
 ```
 
 Cele trei adrese absolute din `index.html` — `og:image`, `og:url` și
-`<link rel="canonical">` — arată deja către adresa asta. **Dacă repo-ul se
-redenumește vreodată, ele trebuie schimbate**, altfel site-ul merge, dar
+`<link rel="canonical">` — arată către domeniu. **Dacă domeniul se schimbă
+vreodată, ele trebuie schimbate**, altfel site-ul merge, dar
 previzualizarea linkului pe Instagram și WhatsApp nu.
-
-Un domeniu propriu (`hudasjewelry.ro`, ~10–15 €/an) ar arăta mult mai bine în bio.
-Se adaugă patru înregistrări `A` către `185.199.108.153`, `.109.153`, `.110.153`,
-`.111.153` și un `CNAME` pentru `www`, apoi se trece domeniul la Settings → Pages
-și se bifează **Enforce HTTPS**. Vechea adresă `github.io` redirecționează, deci
-nu se strică nimic.
 
 ### Când modifici ceva
 
@@ -352,7 +348,7 @@ apare în secţiunea „Unde a fost văzută munca ei".
 Fine-grained tokens → Generate new token → Only select repositories →
 `hudas-jewelry` → Repository permissions → **Contents: Read and write**. Atât.
 
-**2. Site-ul pe Cloudflare.** Workers & Pages → Create → importă repo-ul. Interfaţa
+**2. Site-ul pe Cloudflare**, în contul Hudei. Workers & Pages → Create → importă repo-ul. Interfaţa
 creează un **Worker**, nu un proiect Pages — de aceea rutarea e explicită, în
 `worker.js`.
 
