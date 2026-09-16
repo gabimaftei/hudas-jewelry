@@ -1,19 +1,31 @@
-# HUDA'S JEWELRY — website (v1)
+# HUDA'S JEWELRY — website
 
-Un site de o pagină pentru [@hudasjewelry](https://www.instagram.com/hudasjewelry/) —
-bijuteriile Hudei Mahdi. HTML, CSS și JavaScript simplu: fără build, fără dependențe,
-fără cod de server.
+Site-ul bijuteriilor Hudei Mahdi, [@hudasjewelry](https://www.instagram.com/hudasjewelry/):
+pagina principală cu piesele, un blog și un panou de administrare la `/admin`.
+HTML, CSS și JavaScript simplu, fără build și fără dependențe. Singurul cod de
+server e cel al panoului.
 
 ```
-index.html
+index.html              ← pagina principală (părți din ea le regenerează panoul)
+blog/                   ← GENERAT de panou: lista articolelor şi câte o pagină pe articol
+admin/                  ← panoul: core.js + câte un modul pe tab (pieces, texts, blog)
 assets/
-  css/styles.css     ← tot aspectul
-  css/fonts.css      ← @font-face pentru fonturile locale
-  js/products.js     ← catalogul pieselor (aici se adaugă piese noi)
-  js/app.js          ← comportamentul paginii
-  images/            ← fotografiile
-  fonts/             ← fonturile găzduite local + licența lor
+  css/styles.css        ← tot aspectul
+  js/content.js         ← GENERAT: textele site-ului şi cronologia expoziţiilor
+  js/products.js        ← GENERAT: piesele şi lista de expoziţii
+  js/common.js          ← limba, meniul — comune tuturor paginilor
+  js/app.js             ← galeria şi fereastra piesei (doar pe pagina principală)
+  images/               ← pozele pieselor
+  blog/<articol>/       ← pozele articolelor
+data/posts.json         ← GENERAT: articolele (nu se serveşte pe site)
+server/                 ← rutele panoului: api.js, render.js (paginile), github.js
+worker.js               ← punctul de intrare al Worker-ului Cloudflare
+tools/                  ← discul de rotire şi pregătirea cadrelor
 ```
+
+**Fişierele marcate GENERAT se rescriu la fiecare salvare din panou.** Orice
+modificare făcută de mână în ele se pierde. Pentru conţinut, foloseşte panoul;
+pentru structură, vezi secţiunea 8.
 
 ---
 
@@ -81,9 +93,9 @@ Dimensiune bună: în jur de 1200–1400 px pe latura lungă, sub ~150 KB.
 **În mod normal, din panoul de la `/admin`** — vezi secțiunea 8. Ce urmează e
 pentru cazul în care vrei să umbli direct în fișier.
 
-Se deschide `assets/js/products.js` și se copiază un bloc. Atenție: prima
-salvare din panou rescrie fișierul, deci comentariile din el se pierd — datele,
-nu.
+Se deschide `assets/js/products.js` și se copiază un bloc. Fișierul e generat:
+formatul trebuie păstrat exact (`const PRODUCTS = <JSON>;`), fiindcă serverul îl
+citește la fiecare salvare.
 
 ```js
 {
@@ -240,114 +252,167 @@ de la nimeni. În plus:
   focusul înăuntru, se închide cu Escape și face restul paginii inertă cât e
   deschisă, iar animațiile se opresc la `prefers-reduced-motion`.
 
-**Un compromis de știut:** galeria e construită din JavaScript, deci cu JS oprit
-pagina se vede, dar fără piese. Motoarele de căutare rulează JS, așa că nu e o
+**Paginile de blog sunt HTML static**, generat de server la fiecare salvare, nu
+construit din JavaScript. Previzualizarea unui link pe WhatsApp sau Instagram nu
+rulează JavaScript, iar aşa arată poza şi titlul articolului.
+
+**Un compromis de știut:** galeria de piese e construită din JavaScript, deci cu
+JS oprit pagina se vede, dar fără piese. Motoarele de căutare rulează JS, așa că nu e o
 problemă pentru Google — dar e bine de știut.
 
 ---
 
 ## 8. Panoul de la /admin
 
-Huda își adaugă singură piesele, la `adresa-site-ului/admin`. Intră cu o
-parolă — nu are cont de GitHub, nu vede niciun commit, pentru ea e un
-formular. Ghidul scris pentru ea e în [GHID.md](GHID.md).
+Huda schimbă singură tot conţinutul site-ului, la `adresa-site-ului/admin`. Intră
+cu o parolă — n-are cont de GitHub, nu vede niciun commit. Ghidul scris pentru ea
+e în [GHID.md](GHID.md).
+
+Panoul are trei taburi:
+
+| Tab | Ce schimbă |
+|---|---|
+| **Piese** | piesele, pozele lor (tăiate automat pe fundal alb), lista de expoziţii |
+| **Texte** | toate textele site-ului, pe secţiuni, plus cronologia „Unde a fost văzută munca ei" |
+| **Blog** | articole cu titlu, dată, text şi poze; româna obligatorie, engleza opţională |
 
 ### Cum funcționează
 
 ```
-  /admin  ──POST cu parola──▶  /api/publish  ──token GitHub──▶  repo
- (browser)                     (worker.js)                        │
-                                                                  ▼
-                                                        redeploy automat
+                    /api/data     citeşte starea DIN REPO
+  /admin  ─parola─▶ /api/blob     urcă o poză, una câte una     ─token GitHub─▶  repo
+ (browser)          /api/publish  un singur commit cu tot               │
+                     (worker.js → server/api.js)                         ▼
+                                                                redeploy automat
 ```
 
-Tokenul de GitHub stă **numai** în funcție, ca secret pe server. Panoul din
-browserul ei nu-l vede niciodată; el trimite doar parola și conținutul. De
-aceea panoul are nevoie de o gazdă care poate rula cod — GitHub Pages
-servește doar fișiere, deci site-ul stă pe **Cloudflare Workers** (gratuit,
-și tot acolo se leagă domeniul).
+Tokenul de GitHub stă **numai** pe server, ca secret. Panoul din browser trimite
+doar parola şi conţinutul.
 
-Tot ce se schimbă într-o salvare — texte și poze — intră într-un **singur
-commit**, ca să nu existe o clipă în care piesa e scrisă dar poza încă nu.
+**Panoul citeşte datele din repo, nu de pe site.** Dacă le-ar citi de pe site, o
+reîncărcare făcută înainte să se termine deploy-ul — sau o versiune rămasă în
+cache — ar porni de la datele vechi, iar următoarea salvare ar şterge modificarea
+de dinainte.
 
-**Pozele se taie și se micșorează în browserul ei, înainte să plece.** E
-același algoritm cu care au fost pregătite primele 13 piese: caută marginea
-bijuteriei pe fundal alb, lasă 10% aer, duce latura lungă la maximum 1400px
-și comprimă. Fără el, o poză direct din telefon ar ajunge de 4 MB pe site și
-încadrată altfel decât toate celelalte. Dacă poza nu e pe alb — una purtată
-pe mână, de exemplu — algoritmul își dă seama singur și n-o taie.
+**O salvare nu poate suprascrie alta.** Panoul trimite commit-ul de la care a
+pornit. Dacă între timp s-a publicat altceva (de exemplu dintr-un alt tab),
+serverul refuză cu 409 şi un mesaj clar, în loc să scrie peste. Actualizarea
+ramurii nu e forţată nici ea.
+
+**Pozele pleacă una câte una**, prin `/api/blob`, iar publicarea le referă doar
+prin amprentă. Nicio cerere nu devine destul de mare cât să atingă limita de
+procesor a planului gratuit. O poză doar mutată (reordonată) nu se mai urcă deloc:
+serverul refoloseşte fişierul existent din repo.
+
+### Ce generează serverul la fiecare salvare
+
+- `assets/js/products.js`, `assets/js/content.js`, `data/posts.json`
+- în `index.html`: textul românesc din fiecare element cu `data-i18n`, descrierea
+  meta, cronologia, secţiunea de blog de pe prima pagină şi linkul „Blog" din
+  meniu (ultimele două doar dacă există articole), plus o amprentă a datelor în
+  adresa scripturilor, ca browserul să nu ţină o versiune veche în cache
+- `blog/index.html` şi `blog/<id>/index.html` pentru fiecare articol
+
+Părţile regenerate din `index.html` stau între marcaje:
+`<!-- timeline:start -->…<!-- timeline:end -->`, `blog`, `navblog`, `footblog`.
+**Nu le şterge.** Fără ele, serverul refuză salvarea în loc să strice pagina.
+
+Toate textele venite din panou trec prin escapare HTML (`esc()` din
+`server/render.js`). Nicăieri nu se pune text de-al ei ca HTML.
+
+### Ce verifică serverul
+
+Nimic din ce vine din browser nu e crezut pe cuvânt: chei de text doar dintre cele
+existente în `content.js`, identificatori fără caractere de cale, poze doar JPEG şi
+doar în `assets/images/<piesă>-N.jpg` sau `assets/blog/<articol>/N.jpg` — portretele
+şi `og.jpg` nu pot fi atinse —, date calendaristice reale, lungimi maxime, şi că
+fiecare poză de care are nevoie o piesă sau un articol există după commit.
+Pozele şi paginile articolelor şterse le calculează serverul din ce era în repo.
+
+### Cum adaugi un text nou pe site
+
+1. În `index.html`, pune elementul cu `data-i18n="sectiune.cheie"`.
+2. În `assets/js/content.js`, adaugă cheia în `CONTENT.ro` şi `CONTENT.en`.
+3. În `admin/texts.js`, adaug-o în `GROUPS`, cu o etichetă omenească. Dacă uiţi
+   pasul ăsta, nu se pierde nimic: apare singură în secţiunea „Altele".
+
+Un text lăsat gol în română nu se mai afişează (`[data-i18n]:empty`). În engleză,
+un text gol afişează varianta românească.
 
 ### Lista de expoziții
 
-Etichetele de pe piese („Romanian Jewelry Week 2026" etc.) vin din `EXHIBITIONS`,
-iar lista se editează din panou: adăugare, corectare de nume, ștergere. Fiecare
-expoziție are o cheie fixă, născută o dată din numele românesc (ex.
-`bucharest-jewelry-days-2027`). Piesele se leagă de cheie, nu de nume, deci o
-corectură de nume nu rupe nimic.
-
-Ștergerea unei expoziții folosite scoate eticheta de pe toate piesele ei — după
-confirmare. Funcția de pe server verifică cheile, lungimea numelor, că nicio
-piesă nu trimite spre o expoziție inexistentă, și scrie în catalog doar `ro` și
-`en`; engleza goală ia numele românesc.
-
-**Cronologia „Unde a fost văzută munca ei" nu vine din lista asta** — e scrisă
-în `index.html` și în `app.js` (cheile `tl.*`). O expoziție adăugată din panou
-apare ca etichetă pe piese, nu și acolo.
+Etichetele de pe piese vin din `EXHIBITIONS`. Fiecare expoziție are o cheie fixă,
+născută din numele românesc; piesele se leagă de cheie, deci o corectură de nume
+nu rupe nimic. Lista asta e separată de **cronologie** (tabul „Texte"), care e ce
+apare în secţiunea „Unde a fost văzută munca ei".
 
 ### Ce ai de făcut o dată, la început
 
 **1. Un token de GitHub.** github.com → Settings → Developer settings →
-Personal access tokens → Fine-grained tokens → Generate new token.
-Only select repositories → `hudas-jewelry`. La Permissions → Repository
-permissions → **Contents: Read and write**. Atât, nimic altceva.
+Fine-grained tokens → Generate new token → Only select repositories →
+`hudas-jewelry` → Repository permissions → **Contents: Read and write**. Atât.
 
-**2. Site-ul pe Cloudflare.** Deja făcut: Workers & Pages → Create →
-importă repo-ul. Atenție, interfaţa creează un **Worker**, nu un proiect
-Pages — de aceea rutarea către funcţie e explicită, în `worker.js`, şi nu
-prin convenţia `functions/` a lui Pages. Folderul `functions/` a rămas acolo
-doar fiindcă `worker.js` importă din el.
+**2. Site-ul pe Cloudflare.** Workers & Pages → Create → importă repo-ul. Interfaţa
+creează un **Worker**, nu un proiect Pages — de aceea rutarea e explicită, în
+`worker.js`.
 
-**3. Cele două secrete.** Numele repo-ului e scris în `publish.js`, deci rămân
-doar două lucruri de pus. Din terminal, în folderul proiectului:
+**3. Cele două secrete**, din terminal, în folderul proiectului:
 
 ```bash
-npx wrangler@3 pages secret put ADMIN_PASSWORD --project-name hudas-jewelry
-npx wrangler@3 pages secret put GITHUB_TOKEN --project-name hudas-jewelry
+npx wrangler@3 secret put ADMIN_PASSWORD
 ```
 
-Fiecare comandă întreabă valoarea și o citește fără s-o afișeze. Se pot pune și
-din dashboard: Settings → Variables and Secrets → Add, tip **Secret**.
+```bash
+npx wrangler@3 secret put GITHUB_TOKEN
+```
 
-**Tokenul nu trebuie să ajungă nicăieri altundeva** — nici într-un fișier din
-proiect, nici într-o conversație. Dacă totuși ajunge, se șterge de pe GitHub și
-se face altul; e treabă de un minut.
+Fiecare comandă cere valoarea şi n-o afişează. **Porneşte comanda înainte să
+generezi tokenul**, ca să-l lipeşti pe loc. Tokenul nu trebuie să ajungă nicăieri
+altundeva — nici în fişiere, nici în conversaţii. Dacă ajunge, se şterge de pe
+GitHub şi se face altul.
 
-**4. Domeniul.** Tot în Cloudflare, Custom domains. După ce e legat, schimbă
-cele trei adrese absolute din `index.html` (`og:image`, `og:url`,
-`canonical`), altfel previzualizarea linkului rămâne pe adresa veche.
+Wrangler 4 cere Node 22; pe Node 20 merge `npx wrangler@3`.
 
-**Opreşte GitHub Pages** după ce Cloudflare merge. Altfel rămân două adrese
-vii cu acelaşi conţinut — rău pentru Google — iar pe cea de pe Pages panoul
-nu funcţionează deloc: `/api/publish` întoarce 404, fiindcă GitHub Pages
-serveşte doar fişiere, nu rulează cod.
+**4. Domeniul.** În Cloudflare, la Worker → Settings → Domains & Routes. După ce
+e legat, schimbă adresele absolute din `index.html` (`og:image`, `og:url`,
+`canonical`). Paginile de blog iau adresa site-ului din `canonical`, deci se
+actualizează singure la următoarea salvare din panou.
+
+### Cum se testează local, fără să atingi site-ul real
+
+Serverul vorbeşte cu GitHub prin `server/github.js`, iar adresa API-ului se poate
+suprascrie cu variabila `GITHUB_API`. Pentru teste, `wrangler dev` rulează
+Worker-ul adevărat faţă de un GitHub simulat care scrie într-o copie a site-ului.
+În `.dev.vars` (ignorat de git):
+
+```
+ADMIN_PASSWORD="o-parola-de-test"
+GITHUB_TOKEN="fals"
+GITHUB_API="http://127.0.0.1:4390"
+```
+
+**Nu seta niciodată `GITHUB_API` pe Worker-ul de producţie.**
 
 ### Dacă ceva nu merge
 
-- **„Parolă greșită" deși e corectă** → `ADMIN_PASSWORD` nu e setată pe
-  Production, sau are un spațiu la capăt.
-- **„Panoul nu e configurat complet"** → lipsește `ADMIN_PASSWORD` sau
-  `GITHUB_TOKEN`. Verifică cu
-  `npx wrangler@3 pages secret list --project-name hudas-jewelry`.
-- **„Nu s-a putut salva: GitHub … 403"** → tokenul a expirat sau n-are
-  Contents: Read and write pe repo-ul ăsta.
-- **A salvat, dar nu se vede pe site** → uită-te în Cloudflare la
-  Deployments; commit-ul există deja în repo, deci nimic nu s-a pierdut.
+- **„Parolă greșită" deși e corectă** → `ADMIN_PASSWORD` are un spaţiu la capăt,
+  sau a fost pusă pe alt Worker.
+- **„Panoul nu e configurat complet"** → lipseşte un secret. Verifică cu
+  `npx wrangler@3 secret list`.
+- **„GitHub … 401 Bad credentials"** → tokenul e greşit, trunchiat sau şters.
+- **„GitHub … 403"** → tokenul a expirat sau n-are Contents: Read and write.
+- **„Între timp s-a publicat altceva"** → s-a salvat din alt tab. Se copiază
+  textul, se reîncarcă panoul, se publică din nou.
+- **„index.html nu mai are marcajul…"** → cineva a şters un marcaj din pagină;
+  se pune la loc şi se salvează din nou.
+- **A salvat, dar nu se vede pe site** → Cloudflare → Deployments. Commit-ul e
+  deja în repo, deci nimic nu s-a pierdut.
 
 ### Dacă strică ceva
 
 Fiecare salvare e un commit separat, semnat „Salvat de Huda din panoul de la
-/admin". Orice greșeală se dă înapoi cu `git revert <commit>` și un push —
-inclusiv o piesă ștearsă din greșeală, cu poze cu tot.
+/admin". Orice greşeală se dă înapoi cu `git revert <commit>` şi un push —
+inclusiv o piesă sau un articol şters din greşeală, cu poze cu tot.
 
 ---
 

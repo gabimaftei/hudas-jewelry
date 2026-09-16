@@ -5,6 +5,11 @@
    panoul de la /admin, deci orice modificare făcută de mână aici se
    pierde la următoarea salvare. Pentru schimbări de conținut,
    folosește panoul.
+
+   Câmpuri care NU se editează din panou, dar sunt duse mai departe:
+     spin        câte cadre are rotirea (de obicei 36). Cadrele stau în
+                 assets/spins/<id>/01.jpg … Vezi FOTOGRAFIERE.md.
+     spinReverse true dacă rotirea merge în sensul greşit.
    --------------------------------------------------------------- */
 
 const PRODUCTS = [

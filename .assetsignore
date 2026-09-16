@@ -3,7 +3,8 @@
 # dar n-au ce căuta pe domeniul public.
 worker.js
 wrangler.jsonc
-functions/
+server/
+data/
 .claude/
 *.md
 tools/

@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b221c'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='16' fill='%23c9a57e' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="../assets/css/fonts.css">
-<link rel="stylesheet" href="admin.css?v=2">
+<link rel="stylesheet" href="admin.css?v=3">
 </head>
 <body>
 
@@ -16,7 +16,7 @@
 <div class="gate" id="gate">
   <form class="gate__box" id="gate-form">
     <h1 class="gate__title">Panoul Hudei</h1>
-    <p class="gate__lede">Aici se adaugă piese noi și se schimbă textele de pe site.</p>
+    <p class="gate__lede">Piese, texte și blog — tot ce e pe site se schimbă de aici.</p>
     <label class="field">
       <span class="field__label">Parola</span>
       <input type="password" id="gate-pass" autocomplete="current-password" required>
@@ -32,21 +32,25 @@
   <header class="bar">
     <div class="bar__brand">
       <strong>Panoul Hudei</strong>
-      <span id="count"></span>
     </div>
+    <nav class="tabs" role="tablist" aria-label="Ce editezi">
+      <button class="tab" type="button" role="tab" id="tab-pieces" data-view="pieces" aria-controls="view-pieces" aria-selected="true">Piese<span class="tab__dot" hidden></span></button>
+      <button class="tab" type="button" role="tab" id="tab-texts" data-view="texts" aria-controls="view-texts" aria-selected="false" tabindex="-1">Texte<span class="tab__dot" hidden></span></button>
+      <button class="tab" type="button" role="tab" id="tab-blog" data-view="blog" aria-controls="view-blog" aria-selected="false" tabindex="-1">Blog<span class="tab__dot" hidden></span></button>
+    </nav>
     <div class="bar__right">
-      <span class="bar__status" id="status"></span>
-      <a class="btn btn--ghost" href="../" target="_blank" rel="noopener">Vezi site-ul</a>
+      <span class="bar__status" id="status" role="status"></span>
+      <a class="btn btn--ghost" href="/" target="_blank" rel="noopener">Vezi site-ul</a>
       <button class="btn btn--primary" type="button" id="save" disabled>Publică</button>
     </div>
   </header>
 
-  <main class="layout">
+  <main class="layout" id="view-pieces" role="tabpanel" aria-labelledby="tab-pieces">
 
     <!-- lista pieselor -->
     <aside class="side">
       <div class="side__head">
-        <h2>Piese</h2>
+        <h2>Piese <span class="side__count" id="count"></span></h2>
         <button class="btn btn--small" type="button" id="add">+ Adaugă</button>
       </div>
       <p class="side__hint">Ordinea de aici e ordinea de pe site. Prima e cea de sus.</p>
@@ -183,7 +187,97 @@
       </div>
     </section>
   </main>
+
+  <!-- ══════════ TEXTE ══════════ -->
+  <main class="layout" id="view-texts" role="tabpanel" aria-labelledby="tab-texts" hidden>
+    <aside class="side">
+      <div class="side__head"><h2>Secțiuni</h2></div>
+      <p class="side__hint">Alege o parte a site-ului. Româna în stânga, engleza în dreapta.</p>
+      <ol class="plist" id="tlist"></ol>
+    </aside>
+    <section class="editor">
+      <div class="editor__top"><h2 id="t-title"></h2></div>
+      <p class="block__hint block__hint--top" id="t-hint"></p>
+      <div id="t-fields"></div>
+
+      <section class="block" id="tl-block" hidden>
+        <h3 class="block__title">Cronologia</h3>
+        <p class="block__hint">
+          Lista „Unde a fost văzută munca ei" de pe site, în ordinea de aici.
+          Ce e scris la „Când" apare exact așa — „Oct 2026", „30 sept – 4 oct 2026".
+        </p>
+        <ol class="tl" id="tl-list"></ol>
+        <button class="btn btn--ghost" type="button" id="tl-add">+ Adaugă o expoziție sau un premiu</button>
+      </section>
+    </section>
+  </main>
+
+  <!-- ══════════ BLOG ══════════ -->
+  <main class="layout" id="view-blog" role="tabpanel" aria-labelledby="tab-blog" hidden>
+    <aside class="side">
+      <div class="side__head">
+        <h2>Articole</h2>
+        <button class="btn btn--small" type="button" id="post-add">+ Scrie</button>
+      </div>
+      <p class="side__hint">Cel mai nou e primul. Ordinea vine din dată.</p>
+      <ol class="plist" id="post-list"></ol>
+    </aside>
+
+    <section class="editor">
+      <p class="editor__empty" id="post-empty">Încă nu e niciun articol. Apasă „+ Scrie" ca să începi primul.</p>
+
+      <div id="post-body" hidden>
+        <div class="editor__top">
+          <h2 id="post-title">Articol</h2>
+          <div class="editor__actions">
+            <a class="btn btn--ghost btn--small" id="post-view" target="_blank" rel="noopener" hidden>Vezi articolul</a>
+            <button class="btn btn--danger btn--small" type="button" id="post-del">Șterge articolul</button>
+          </div>
+        </div>
+
+        <section class="block">
+          <h3 class="block__title">Pozele</h3>
+          <p class="block__hint">
+            Prima poză e coperta — apare în listă și când trimiți linkul pe WhatsApp sau Instagram.
+            Nu le tai: doar le micșorez, ca să se încarce repede.
+          </p>
+          <div class="drop" id="post-drop">
+            <input type="file" id="post-file" accept="image/*" multiple hidden>
+            <button class="btn btn--ghost" type="button" id="post-pick">Alege poze</button>
+            <span class="drop__or">sau trage-le aici</span>
+          </div>
+          <ul class="shots" id="post-shots"></ul>
+        </section>
+
+        <section class="block">
+          <h3 class="block__title">Textul</h3>
+          <div class="row">
+            <label class="field field--date"><span class="field__label">Data</span>
+              <input type="date" id="post-date"></label>
+          </div>
+          <p class="block__hint block__hint--gap">
+            Lasă un rând liber între paragrafe. Engleza e opțională: dacă o lași goală,
+            cine citește în engleză vede textul în română, cu o notă.
+          </p>
+          <div class="pair pair__head"><span>Română</span><span>English — opțional</span></div>
+          <div class="pair">
+            <label class="field"><span class="field__label">Titlul *</span>
+              <input type="text" id="post-ro-title" maxlength="160"></label>
+            <label class="field"><span class="field__label">Title</span>
+              <input type="text" id="post-en-title" maxlength="160"></label>
+          </div>
+          <div class="pair">
+            <label class="field"><span class="field__label">Textul</span>
+              <textarea class="tall" id="post-ro-body" rows="16" maxlength="20000"></textarea></label>
+            <label class="field"><span class="field__label">Text</span>
+              <textarea class="tall" id="post-en-body" rows="16" maxlength="20000"></textarea></label>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
 </div>
+
 
 <!-- ══════════ CE SE PUBLICĂ ══════════ -->
 <div class="modal" id="confirm" hidden>
@@ -202,7 +296,10 @@
   </div>
 </div>
 
-<script src="../assets/js/products.js?admin=1"></script>
-<script src="admin.js?v=2"></script>
+<!-- Datele NU se mai încarcă de pe site: vin din /api/data, direct din repo. -->
+<script src="core.js?v=3"></script>
+<script src="pieces.js?v=3"></script>
+<script src="texts.js?v=3"></script>
+<script src="blog.js?v=3"></script>
 </body>
 </html>

@@ -1,7 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
-   HUDA'S JEWELRY — comportamentul paginii
+   HUDA'S JEWELRY — pagina principală
    ───────────────────────────────────────────────────────────────
    Fără dependențe, fără build. Rulează direct în browser.
+
+   Limba, meniul şi textele de conţinut vin din assets/js/common.js
+   şi assets/js/content.js. Aici stau doar galeria şi fereastra piesei.
 
    Nu se scrie niciodată în element.style: Content-Security-Policy
    (style-src 'self') ar bloca-o. Tot ce e dinamic trece prin clase.
@@ -12,65 +15,12 @@
   var IG_USER = 'hudasjewelry';
   var IG_DM   = 'https://ig.me/m/' + IG_USER;
 
-  /* ─────────────── textele ─────────────── */
+  /* ─────────────── textele interfeţei ───────────────
+     Nu se editează din panou: sunt etichetele galeriei şi ale ferestrei
+     piesei. Textele de conţinut stau în assets/js/content.js. */
   var COPY = {
     ro: {
       'skip': 'Sari la piese',
-      'nav.est': 'Huda Mahdi · Irak / România',
-      'nav.collection': 'Piese',
-      'nav.story': 'Despre Huda',
-      'nav.recognition': 'Expoziții',
-      'nav.contact': 'Scrie-i',
-
-      'hero.eyebrow': 'Bijuterie contemporană · lucrată manual',
-      'hero.title1': 'Fiecare piesă',
-      'hero.title2': 'există o singură dată',
-      'hero.lede': 'Argint, aur, pietre naturale și perle, îndoite și răsucite de mână până ies forme care nu se mai pot repeta. Un design prezentat o dată nu se mai face a doua oară.',
-      'hero.ctaPrimary': 'Vezi piesele',
-      'hero.ctaSecondary': 'Despre Huda',
-      'hero.caption': 'Irak / România',
-
-      'collection.eyebrow': 'Piesele',
-      'collection.title': 'Nu există două piese la fel',
-      'collection.lede': 'Fiecare e lucrată de mână, de la sârmă la piatră. Când una pleacă, gata — nu se mai face identic nici dacă cineva o cere.',
-      'collection.empty': 'Nicio piesă de tipul ăsta deocamdată.',
-      'collection.note': 'Ai în cap ceva ce nu e aici? O piatră de la care să pornim, o piesă veche de reînviat? <a href="#contact">Scrie-i</a> — se lucrează și la comandă.',
-
-      'story.eyebrow': 'Despre Huda',
-      'story.title': 'Din Irak, la masa de lucru din România',
-      'story.p1': 'Huda Mahdi lucrează între Irak și România. A studiat la Assamblage Contemporary Jewelry School din București, iar piesele ei au ajuns de acolo la München, la Ljubljana și înapoi acasă, la București.',
-      'story.p2': 'Sârma e materialul ei. O răsucește, o îndoaie și o coase în dantele care nu se repetă niciodată identic, apoi așază în ele pietre naturale și perle. Nimic nu iese dintr-un tipar.',
-      'story.p3': 'De aceea colecția nu are stoc și nu are mărimi standard: are piese. Fiecare cu pietrele ei, cu desenul ei, făcută o singură dată.',
-      'story.quote': '„Sunt mândră să spun că piesele mele sunt unicate și designul prezentat o dată nu se repetă. Toate lucrările mele sunt făcute din suflet.”',
-      'story.cite': 'Huda Mahdi, pentru Revista Atelierul',
-
-      'recognition.eyebrow': 'Expoziții și premii',
-      'recognition.title': 'Unde a fost văzută munca ei',
-      'recognition.cap': 'Premiul Lost in Jewellery Magazine, Romanian Jewelry Week 2024.',
-      'tl.1t': 'Premiul Lost in Jewellery Magazine',
-      'tl.1w': 'Romanian Jewelry Week 2024, București',
-      'tl.2t': 'Interviu',
-      'tl.2w': 'Revista Atelierul',
-      'tl.3d': 'Mar 2026',
-      'tl.3t': 'Handwerk & Design, Internationale Handwerksmesse',
-      'tl.3w': 'München, cu Assamblage School',
-      'tl.4d': 'Mar 2026',
-      'tl.4t': 'Slovenian Jewelry Week, designer invitat',
-      'tl.4w': 'Ljubljana',
-      'tl.5d': '30 sept – 4 oct 2026',
-      'tl.5t': 'Romanian Jewelry Week 2026, ediția a 7-a',
-      'tl.5w': 'Biblioteca Națională a României, București',
-
-      'contact.eyebrow': 'Scrie-i',
-      'contact.title': 'Vorbiți direct, pe Instagram',
-      'contact.lede': 'Nu e magazin și nu e coș de cumpărături. Îi spui ce piesă îți place, iar prețul, măsura și livrarea le stabiliți în conversație. Îți răspunde chiar ea.',
-      'contact.dm': 'Scrie-i pe Instagram',
-      'contact.profile': 'Vezi profilul',
-      'contact.small': '@hudasjewelry',
-
-      'footer.tag': 'Bijuterii contemporane, lucrate manual',
-
-      /* piese */
       'f.all': 'Toate',
       'f.inel': 'Inele',
       'f.colier': 'Coliere',
@@ -92,63 +42,8 @@
       'pm.spinLoading': 'Se încarcă rotirea…',
       'open': 'Vezi piesa',
     },
-
     en: {
       'skip': 'Skip to the pieces',
-      'nav.est': 'Huda Mahdi · Iraq / Romania',
-      'nav.collection': 'Pieces',
-      'nav.story': 'About Huda',
-      'nav.recognition': 'Exhibitions',
-      'nav.contact': 'Message her',
-
-      'hero.eyebrow': 'Contemporary jewellery · made by hand',
-      'hero.title1': 'Every piece',
-      'hero.title2': 'exists only once',
-      'hero.lede': 'Silver, gold, natural stones and pearls, bent and twisted by hand into shapes that cannot be made twice. A design shown once is never repeated.',
-      'hero.ctaPrimary': 'See the pieces',
-      'hero.ctaSecondary': 'About Huda',
-      'hero.caption': 'Iraq / Romania',
-
-      'collection.eyebrow': 'The pieces',
-      'collection.title': 'No two pieces alike',
-      'collection.lede': 'Each one worked by hand, from the wire to the stone. Once a piece is gone it is gone — it will not be remade, even on request.',
-      'collection.empty': 'Nothing of that kind yet.',
-      'collection.note': 'Have something else in mind? A stone to build around, an old piece to bring back? <a href="#contact">Message her</a> — she takes commissions.',
-
-      'story.eyebrow': 'About Huda',
-      'story.title': 'From Iraq to a workbench in Romania',
-      'story.p1': 'Huda Mahdi works between Iraq and Romania. She trained at the Assamblage Contemporary Jewelry School in Bucharest, and her work has travelled from there to Munich, to Ljubljana, and back home to Bucharest.',
-      'story.p2': 'Wire is her material. She twists it, bends it and stitches it into lace that never repeats the same way twice, then sets natural stones and pearls into it. Nothing comes out of a mould.',
-      'story.p3': 'That is why this collection has no stock and no standard sizes — only pieces. Each with its own stones, its own drawing, made once.',
-      'story.quote': '“I am proud to say that my pieces are one of a kind, and a design shown once is never repeated. All my work is made from the heart.”',
-      'story.cite': 'Huda Mahdi, for Revista Atelierul',
-
-      'recognition.eyebrow': 'Exhibitions and awards',
-      'recognition.title': 'Where the work has been seen',
-      'recognition.cap': 'The Lost in Jewellery Magazine Award, Romanian Jewelry Week 2024.',
-      'tl.1t': 'The Lost in Jewellery Magazine Award',
-      'tl.1w': 'Romanian Jewelry Week 2024, Bucharest',
-      'tl.2t': 'Interview',
-      'tl.2w': 'Revista Atelierul',
-      'tl.3d': 'Mar 2026',
-      'tl.3t': 'Handwerk & Design, Internationale Handwerksmesse',
-      'tl.3w': 'Munich, with Assamblage School',
-      'tl.4d': 'Mar 2026',
-      'tl.4t': 'Slovenian Jewelry Week, guest designer',
-      'tl.4w': 'Ljubljana',
-      'tl.5d': '30 Sept – 4 Oct 2026',
-      'tl.5t': 'Romanian Jewelry Week 2026, 7th edition',
-      'tl.5w': 'The National Library of Romania, Bucharest',
-
-      'contact.eyebrow': 'Message her',
-      'contact.title': 'You talk to her directly, on Instagram',
-      'contact.lede': 'This is not a shop and there is no basket. You tell her which piece you like, and the price, the size and the delivery get settled in the conversation. She answers herself.',
-      'contact.dm': 'Message her on Instagram',
-      'contact.profile': 'See the profile',
-      'contact.small': '@hudasjewelry',
-
-      'footer.tag': 'Contemporary jewellery, made by hand',
-
       'f.all': 'All',
       'f.inel': 'Rings',
       'f.colier': 'Necklaces',
@@ -172,13 +67,8 @@
     },
   };
 
-  var lang = 'ro';
   var filter = 'all';
-
-  function t(key) {
-    var d = COPY[lang];
-    return (d && d[key] !== undefined) ? d[key] : (COPY.ro[key] || '');
-  }
+  var t = HJ.t;
   function fill(str, vals) {
     return str.replace(/\{(\w+)\}/g, function (_, k) {
       return vals[k] !== undefined ? vals[k] : '';
@@ -187,24 +77,7 @@
   var $  = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
-  /* ─────────────── traducerea paginii ─────────────── */
-  function applyCopy() {
-    document.documentElement.lang = lang;
-    $$('[data-i18n]').forEach(function (el) {
-      var key = el.getAttribute('data-i18n');
-      var val = t(key);
-      if (!val) return;
-      // doar câteva chei conțin un link; restul se pun ca text simplu
-      if (key === 'collection.note') el.innerHTML = val;
-      else el.textContent = val;
-    });
-    $$('.langswitch button').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
-    });
-    document.title = lang === 'ro'
-      ? "HUDA'S JEWELRY — bijuterii contemporane, lucrate manual"
-      : "HUDA'S JEWELRY — contemporary jewellery, made by hand";
-  }
+  HJ.extend(COPY);
 
   /* ─────────────── filtrele ─────────────── */
   function kindsInUse() {
@@ -255,7 +128,7 @@
     grid.textContent = '';
 
     PRODUCTS.forEach(function (p, i) {
-      var loc = p[lang] || p.ro;
+      var loc = p[HJ.lang()] || p.ro;
 
       var card = document.createElement('button');
       card.type = 'button';
@@ -277,7 +150,7 @@
       if (p.exhibited && EXHIBITIONS[p.exhibited]) {
         var flag = document.createElement('span');
         flag.className = 'card__flag';
-        flag.textContent = EXHIBITIONS[p.exhibited][lang] || EXHIBITIONS[p.exhibited].ro;
+        flag.textContent = EXHIBITIONS[p.exhibited][HJ.lang()] || EXHIBITIONS[p.exhibited].ro;
         frame.appendChild(flag);
       }
       if (p.sold) {
@@ -356,7 +229,7 @@
     var box = document.createElement('div');
     box.className = 'spin';
     box.setAttribute('role', 'img');
-    box.setAttribute('aria-label', (p[lang] || p.ro).name + ' — ' + t('pm.spin'));
+    box.setAttribute('aria-label', (p[HJ.lang()] || p.ro).name + ' — ' + t('pm.spin'));
     box.tabIndex = 0;
 
     var frames = [], ready = [];
@@ -480,7 +353,7 @@
   function showPhoto(p, n) {
     stopSpin();
     var stage = $('#pm-stage');
-    var loc = p[lang] || p.ro;
+    var loc = p[HJ.lang()] || p.ro;
     stage.textContent = '';
     var img = document.createElement('img');
     img.src = photo(p, n);
@@ -495,7 +368,7 @@
     var p = PRODUCTS.filter(function (x) { return x.id === id; })[0];
     if (!p || !modal) return;
     currentPid = id;
-    var loc = p[lang] || p.ro;
+    var loc = p[HJ.lang()] || p.ro;
 
     $('#pm-tagline').textContent = loc.tagline;
     $('#pm-title').textContent   = loc.name;
@@ -557,7 +430,7 @@
     }
     if (loc.materials) row(t('pm.materials'), loc.materials);
     if (p.exhibited && EXHIBITIONS[p.exhibited]) {
-      row(t('pm.exhibited'), EXHIBITIONS[p.exhibited][lang] || EXHIBITIONS[p.exhibited].ro);
+      row(t('pm.exhibited'), EXHIBITIONS[p.exhibited][HJ.lang()] || EXHIBITIONS[p.exhibited].ro);
     }
     row(t('pm.oneoff'), t('pm.oneoffVal'));
 
@@ -621,31 +494,6 @@
     });
   }
 
-  /* ─────────────── navigația ─────────────── */
-  var nav = $('#nav');
-  var burger = $('.nav__burger');
-  var links = $('#nav-links');
-
-  if (burger && links) {
-    burger.addEventListener('click', function () {
-      var open = burger.getAttribute('aria-expanded') === 'true';
-      burger.setAttribute('aria-expanded', String(!open));
-      links.classList.toggle('is-open', !open);
-    });
-    $$('#nav-links > a').forEach(function (a) {
-      a.addEventListener('click', function () {
-        burger.setAttribute('aria-expanded', 'false');
-        links.classList.remove('is-open');
-      });
-    });
-  }
-
-  if (nav) {
-    var onScroll = function () { nav.classList.toggle('is-stuck', window.scrollY > 8); };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  }
-
   /* ─────────────── apariția la scroll ─────────────── */
   var io = null;
   function observeReveal() {
@@ -663,23 +511,21 @@
     $$('.reveal:not(.is-in)').forEach(function (el) { io.observe(el); });
   }
 
-  /* ─────────────── schimbarea limbii ─────────────── */
-  $$('.langswitch button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      if (b.dataset.lang === lang) return;
-      lang = b.dataset.lang;
-      applyCopy();
-      buildFilters();
-      buildGrid();
-      if (currentPid) openModal(currentPid);   // re-deschide în limba nouă
-    });
+  /* ─────────────── pornire ─────────────── */
+  function setTitle() {
+    document.title = HJ.lang() === 'ro'
+      ? "HUDA'S JEWELRY — bijuterii contemporane, lucrate manual"
+      : "HUDA'S JEWELRY — contemporary jewellery, made by hand";
+  }
+
+  HJ.onLang(function () {
+    setTitle();
+    buildFilters();
+    buildGrid();
+    if (currentPid) openModal(currentPid);   // re-deschide în limba nouă
   });
 
-  /* ─────────────── pornire ─────────────── */
-  var y = $('#year');
-  if (y) y.textContent = String(new Date().getFullYear());
-
-  applyCopy();
+  setTitle();
   buildFilters();
   buildGrid();
 
