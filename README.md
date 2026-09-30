@@ -208,6 +208,10 @@ Configurarea e în `wrangler.jsonc`, punctul de intrare în `worker.js`, iar
 
 ### Cum se publică o modificare
 
+Worker-ul din contul Hudei e legat de repo prin Workers Builds (Settings → Build): orice
+commit pe `main` — inclusiv cele făcute de panou la „Publică” — se construieşte şi se
+pune online singur. Istoricul build-urilor e în Cloudflare, la Worker → Deployments.
+
 Orice ajunge pe `main` se vede online cam într-un minut:
 
 ```bash
