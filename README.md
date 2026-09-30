@@ -183,7 +183,7 @@ Content-Security-Policy se poartă altfel și unele lucruri par stricate degeaba
 
 ## 6. E online
 
-**Live la <https://hudasjewlery.com/>** (şi `www.`)
+**Live la <https://hudasjewelry.com/>**
 
 Găzduit gratuit pe **Cloudflare Workers**, legat de
 <https://github.com/gabimaftei/hudas-jewelry> (branch-ul `main`).
@@ -196,11 +196,15 @@ Configurarea e în `wrangler.jsonc`, punctul de intrare în `worker.js`, iar
 
 > **Domeniul şi Worker-ul stau în contul Cloudflare al Hudei**, nu în al
 > dezvoltatorului. Cloudflare nu lasă un domeniu dintr-un cont să arate spre un
-> Worker din alt cont, iar domeniul e plătit de ea. `account_id` şi cele două
-> domenii sunt scrise în `wrangler.jsonc`; adresa `workers.dev` e oprită.
+> Worker din alt cont, iar domeniul e plătit de ea. `account_id` şi domeniile
+> sunt scrise în `wrangler.jsonc`; adresa `workers.dev` e oprită.
 >
-> Domeniul se scrie **jew-l-ery** (`hudasjewlery.com`), nu ca pe Instagram
-> (`hudasjewelry`). Cine îl dă mai departe să-l copieze, nu să-l tasteze.
+> **Adresa canonică e `hudasjewelry.com`**, fără `www.`. Worker-ul (`CANONICAL`
+> în `worker.js`) trimite într-un singur salt pe `https://hudasjewelry.com`
+> orice altă gazdă — `www.hudasjewelry.com`, precum şi domeniul vechi,
+> `hudasjewlery.com`, cumpărat din greşeală cu o literă în minus — şi orice
+> cerere pe `http://`. Fără redirecţionarea pe https, browserul arăta
+> „Not secure" cui scria adresa fără `https://`.
 
 ### Cum se publică o modificare
 
@@ -355,11 +359,11 @@ creează un **Worker**, nu un proiect Pages — de aceea rutarea e explicită, �
 **3. Cele două secrete**, din terminal, în folderul proiectului:
 
 ```bash
-npx wrangler@3 secret put ADMIN_PASSWORD
+npx -y -p node@22 -p wrangler@4 wrangler secret put ADMIN_PASSWORD
 ```
 
 ```bash
-npx wrangler@3 secret put GITHUB_TOKEN
+npx -y -p node@22 -p wrangler@4 wrangler secret put GITHUB_TOKEN
 ```
 
 Fiecare comandă cere valoarea şi n-o afişează. **Porneşte comanda înainte să
@@ -367,7 +371,11 @@ generezi tokenul**, ca să-l lipeşti pe loc. Tokenul nu trebuie să ajungă nic
 altundeva — nici în fişiere, nici în conversaţii. Dacă ajunge, se şterge de pe
 GitHub şi se face altul.
 
-Wrangler 4 cere Node 22; pe Node 20 merge `npx wrangler@3`.
+`wrangler.jsonc` foloseşte `assets.run_worker_first` ca listă de căi, iar asta o
+înţelege doar wrangler 4 (wrangler 3 dă eroare la citirea configurării). Wrangler 4 cere
+Node 22: dacă ai Node 20, comenzile de mai sus aduc temporar un Node 22 cu `-p node@22`,
+fără să instaleze nimic pe calculator. Pe Node 22 merge şi simplu, `npx wrangler <comandă>`.
+Publicarea manuală e la fel: `npx -y -p node@22 -p wrangler@4 wrangler deploy`.
 
 **4. Domeniul.** În Cloudflare, la Worker → Settings → Domains & Routes. După ce
 e legat, schimbă adresele absolute din `index.html` (`og:image`, `og:url`,
@@ -394,7 +402,7 @@ GITHUB_API="http://127.0.0.1:4390"
 - **„Parolă greșită" deși e corectă** → `ADMIN_PASSWORD` are un spaţiu la capăt,
   sau a fost pusă pe alt Worker.
 - **„Panoul nu e configurat complet"** → lipseşte un secret. Verifică cu
-  `npx wrangler@3 secret list`.
+  `npx -y -p node@22 -p wrangler@4 wrangler secret list`.
 - **„GitHub … 401 Bad credentials"** → tokenul e greşit, trunchiat sau şters.
 - **„GitHub … 403"** → tokenul a expirat sau n-are Contents: Read and write.
 - **„Între timp s-a publicat altceva"** → s-a salvat din alt tab. Se copiază

@@ -10,13 +10,28 @@
   "account_id": "77fe04201b2b97e2e7af9be776e3ab59",
   // Site-ul se vede doar pe domeniu; adresa workers.dev e oprită.
   "workers_dev": false,
+  // Domeniul de bază e hudasjewelry.com. Celelalte trei gazde — www. şi
+  // domeniul vechi, scris greşit — ajung tot la Worker, doar ca să fie
+  // redirecţionate de acolo (vezi CANONICAL în worker.js).
   "routes": [
+    { "pattern": "hudasjewelry.com", "custom_domain": true },
+    { "pattern": "www.hudasjewelry.com", "custom_domain": true },
     { "pattern": "hudasjewlery.com", "custom_domain": true },
     { "pattern": "www.hudasjewlery.com", "custom_domain": true }
   ],
   "assets": {
     // Fişierele site-ului stau în rădăcina repo-ului.
     "directory": "./",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    // Fişierele statice se servesc de obicei direct, fără să pornească
+    // Worker-ul — deci nici redirecţionarea de gazdă/https din worker.js
+    // n-ar apuca să ruleze. Îl pornim primul doar la paginile HTML şi la
+    // /api/: o invocare pe pagină vizitată, nu una pe fiecare poză.
+    "run_worker_first": [
+      "/", "/index.html",
+      "/blog", "/blog/*",
+      "/admin", "/admin/*",
+      "/api/*"
+    ]
   }
 }
