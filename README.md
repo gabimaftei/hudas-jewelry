@@ -8,6 +8,7 @@ server e cel al panoului.
 ```
 index.html              ← pagina principală (părți din ea le regenerează panoul)
 blog/                   ← GENERAT de panou: lista articolelor şi câte o pagină pe articol
+piese/<id>/             ← GENERAT de panou: câte o pagină pe piesă (adresă /piese/<id>/), pentru motoarele de căutare
 404.html                ← GENERAT: pagina arătată la orice adresă inexistentă
 sitemap.xml             ← GENERAT: adresele site-ului, pentru motoarele de căutare
 robots.txt              ← scris de mână; indică sitemap-ul
@@ -288,6 +289,8 @@ rulează JavaScript, iar aşa arată poza şi titlul articolului.
 - **`sitemap.xml`** se rescrie la fiecare salvare din panou, deci un articol nou
   apare în el, iar unul şters dispare. `/blog/` intră doar dacă există articole.
   `lastmod` au doar articolele, cu data lor: pentru restul n-avem o dată reală.
+  Paginile pieselor (`/piese/<id>/`) intră şi ele în sitemap. Le generează
+  `server/render-products.js`, prin funcţia `renderProductPage`, la fiecare salvare.
 - **Date structurate (JSON-LD)**, în `<head>`-ul din `index.html`: `Organization`
   şi `WebSite`, cu linkul de Instagram. E `Organization` şi nu `JewelryStore`
   pentru că Google cere adresă la un magazin, iar site-ul n-are una. Blocul nu
@@ -306,6 +309,43 @@ rulează JavaScript, iar aşa arată poza şi titlul articolului.
 **Un compromis de știut:** galeria de piese e construită din JavaScript, deci cu
 JS oprit pagina se vede, dar fără piese. Motoarele de căutare rulează JS, așa că nu e o
 problemă pentru Google — dar e bine de știut.
+
+### SEO: Google Search Console și Bing
+
+Google află de site din adresele pe care i le dăm noi, iar asta se face din
+Search Console. Domeniul e în contul Cloudflare al Hudei (ID-ul contului e
+`account_id` în `wrangler.jsonc`), deci pașii de mai jos îi face Huda sau Gabi,
+cu acces la acel cont. În total durează vreo zece minute, plus așteptarea.
+
+1. **Google Search Console.** Intră la <https://search.google.com/search-console>
+   şi alege *Adaugă proprietate*, tipul **Domeniu**, cu `hudasjewelry.com`. Google
+   arată o valoare de tip TXT (începe cu `google-site-verification=`). O copiezi.
+2. **Dovada în Cloudflare.** Dashboard → domeniul `hudasjewelry.com` → **DNS** →
+   **Records** → **Add record**. Tip **TXT**, Name `@`, lipeşti valoarea, iar
+   *Proxy status* rămâne **DNS only**. Salvezi, apoi te întorci în Search Console
+   şi apeşi **Verify**. Poate dura câteva minute; dacă nu merge din prima, mai
+   aştepţi şi reîncerci.
+3. **Harta site-ului.** În Search Console, la **Sitemaps**, scrii `sitemap.xml` şi
+   apeşi **Submit**. Fişierul se rescrie singur la fiecare salvare din panou şi
+   include şi paginile pieselor.
+4. **Cere indexarea.** La **URL Inspection** lipeşti `https://hudasjewelry.com/` şi
+   apeşi **Request indexing**. Fă la fel pentru câteva pagini de piese
+   (`https://hudasjewelry.com/piese/<id>/`), mai ales pentru cele noi.
+5. **Bing.** Intră la <https://www.bing.com/webmasters>, autentifică-te şi alege
+   **Import from Google Search Console**. Bing preia proprietatea şi harta
+   site-ului fără să mai verifici nimic.
+6. **După două-patru săptămâni**, deschide **Performance** din Search Console. La
+   **Queries** vezi cu ce cuvinte ajunge lumea pe site, iar la **Pages** ce pagini
+   sunt văzute. Atât: nu trebuie verificat în fiecare zi.
+
+**Ce să aşteptăm.** Nu e realist să țintim „bijuterii” sau „jewelry”. Pe cuvinte
+generice concurează magazine mari, cu mult mai mult conţinut, iar un site de câteva
+pagini nu intră acolo oricât s-ar optimiza. Ce merge sunt interogările de nişă:
+bijuterii lucrate manual din argint, numele Hudei Mahdi, tipul piesei („inel
+cupolă”, „colier cu trei pietre”). Pentru ele site-ul are deja ce să arate. Cel mai
+mare efect îl au totuşi linkurile de pe alte site-uri: un articol, o expoziţie,
+un director de designeri, cineva care scrie despre ea. Un link de la un site în care
+Google are încredere cântăreşte mai mult decât orice modificare de text din panou.
 
 ---
 
@@ -359,6 +399,7 @@ serverul refoloseşte fişierul existent din repo.
   meniu (ultimele două doar dacă există articole), plus o amprentă a datelor în
   adresa scripturilor, ca browserul să nu ţină o versiune veche în cache
 - `blog/index.html` şi `blog/<id>/index.html` pentru fiecare articol
+- `piese/<id>/index.html` pentru fiecare piesă
 - `404.html` şi `sitemap.xml`
 
 Părţile regenerate din `index.html` stau între marcaje:

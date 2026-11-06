@@ -130,8 +130,10 @@
     PRODUCTS.forEach(function (p, i) {
       var loc = p[HJ.lang()] || p.ro;
 
-      var card = document.createElement('button');
-      card.type = 'button';
+      /* un link adevărat spre pagina piesei (/piese/<id>/), ca Google să
+         le găsească pe toate; un clic simplu deschide totuşi fereastra */
+      var card = document.createElement('a');
+      card.href = '/piese/' + p.id + '/';
       card.className = 'card reveal';
       card.dataset.id = p.id;
       card.dataset.kind = p.kind;
@@ -173,7 +175,12 @@
 
       card.appendChild(frame);
       card.appendChild(body);
-      card.addEventListener('click', function () { openModal(p.id); });
+      card.addEventListener('click', function (e) {
+        /* Cmd/Ctrl/Shift/clic de mijloc: pagina piesei, în tab nou */
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        openModal(p.id);
+      });
       grid.appendChild(card);
     });
 

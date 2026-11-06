@@ -32,6 +32,8 @@ comod, mai ales când încarci poze.
 
 În mai puțin de un minut piesa e pe site.
 
+Fiecare piesă are acum pagina ei proprie, pe care o găsesc și motoarele de căutare; se creează singură la fiecare publicare, fără niciun pas în plus. Ce face pagina să fie găsită e ce scrii tu: numele piesei, rândul scurt de sub nume, descrierea și materialele reale. Descrierea să aibă cel puțin două-trei propoziții adevărate despre piesă: cum e făcută, ce formă are, de ce ai ales materialul. Nu lăsa câmpurile goale și nu scrie materiale generice, pentru că tocmai ele ajung în rezultatele Google.
+
 ---
 
 ## Despre poze

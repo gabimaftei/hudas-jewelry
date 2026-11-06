@@ -128,7 +128,7 @@ export function excerpt(text, max = 170) {
 
 /* Un text în ambele limbi: site-ul arată blocul limbii alese
    (assets/js/common.js). Engleza goală cade pe română. */
-function both(ro, en) {
+export function both(ro, en) {
   return `<span data-l="ro">${esc(ro)}</span><span data-l="en" hidden>${esc(en || ro)}</span>`;
 }
 
@@ -243,7 +243,7 @@ const ICONS = `<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
 
 const IG_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.12 1.38C1.35 2.68.94 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.12.66.66 1.33 1.07 2.12 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.3 1.46-.72 2.12-1.38.66-.66 1.07-1.33 1.38-2.12.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.3-.79-.72-1.46-1.38-2.12C21.32 1.35 20.65.94 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path fill="currentColor" d="M12 5.84a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zm0 10.16a4 4 0 110-8 4 4 0 010 8z"/><circle fill="currentColor" cx="18.41" cy="5.59" r="1.44"/></svg>`;
 
-function page({ content, site, ver, contentJs, title, description, image, path, type, extraHead, noindex, main }) {
+export function page({ content, site, ver, contentJs, title, description, image, path, type, extraHead, noindex, main }) {
   const ro = content.ro;
   const tx = (k) => esc(ro[k] || '');
   const url = site + path;
@@ -441,9 +441,9 @@ export function renderPost({ content, post, site, ver, contentJs }) {
 
 /* Lista adreselor pentru motoarele de căutare. Pagina de blog intră doar dacă
    are articole, ca în meniul primei pagini. Doar articolele au <lastmod>, data
-   lor: pentru restul n-avem o dată reală, iar una inventată strică mai mult
-   decât lipsa ei. */
-export function renderSitemap({ posts, site }) {
+   lor: pentru produse și pentru restul n-avem o dată reală, iar una inventată
+   strică mai mult decât lipsa ei. */
+export function renderSitemap({ posts, products = [], site }) {
   const url = (path, date) => `  <url>
     <loc>${esc(site + path)}</loc>${date ? `
     <lastmod>${esc(date)}</lastmod>` : ''}
@@ -453,6 +453,6 @@ export function renderSitemap({ posts, site }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Fișier generat de panoul de la /admin. Orice modificare făcută de mână se pierde la următoarea salvare. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${url('/')}${list.length ? url('/blog/') : ''}${list.map((p) => url(postUrl(p), p.date)).join('')}</urlset>
+${url('/')}${list.length ? url('/blog/') : ''}${products.map((p) => url(`/piese/${p.id}/`)).join('')}${list.map((p) => url(postUrl(p), p.date)).join('')}</urlset>
 `;
 }
