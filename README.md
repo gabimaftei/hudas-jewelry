@@ -320,6 +320,9 @@ adresă, cu limba schimbată din JavaScript.
 
 ### SEO: Google Search Console și Bing
 
+**Ghidul pas cu pas, scris pentru Huda, e în [GHID-SEARCH-CONSOLE.md](GHID-SEARCH-CONSOLE.md).**
+Mai jos e varianta scurtă.
+
 Google află de site din adresele pe care i le dăm noi, iar asta se face din
 Search Console. Domeniul e în contul Cloudflare al Hudei (ID-ul contului e
 `account_id` în `wrangler.jsonc`), deci pașii de mai jos îi face Huda sau Gabi,
