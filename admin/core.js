@@ -131,7 +131,11 @@
     ctx.drawImage(bitmap, box.x, box.y, box.w, box.h, 0, 0, cw, ch);
     if (bitmap.close) bitmap.close();
     var blob = await new Promise(function (r) { c.toBlob(r, 'image/jpeg', opts.quality); });
-    return { blob: blob, w: cw, h: ch, cropped: cropped };
+    /* Varianta WebP, pentru <picture>. Un browser care nu ştie s-o creeze (Safari)
+       întoarce alt tip: atunci rămâne doar JPG-ul, iar site-ul cade pe el. */
+    var webp = await new Promise(function (r) { c.toBlob(r, 'image/webp', Math.min(0.9, opts.quality)); });
+    if (!webp || webp.type !== 'image/webp') webp = null;
+    return { blob: blob, webp: webp, w: cw, h: ch, cropped: cropped };
   }
 
   /* zona în care se trag pozele: acelaşi comportament în piese şi în blog */

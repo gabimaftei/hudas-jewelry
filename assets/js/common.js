@@ -118,3 +118,30 @@
 
   apply();
 })();
+
+/* Poze WebP cu rezervă JPG. Dacă varianta .webp lipseşte (o poză nouă pusă din
+   panou de un browser care nu poate crea WebP), <img> din <picture> dă eroare
+   şi nu mai încearcă singur JPG-ul. Aici scoatem <source>-urile şi reîncărcăm
+   JPG-ul. Evenimentul "error" nu urcă în document, deci ascultăm în faza de
+   captură; iar o eroare venită înainte să ruleze acest script o prindem la
+   încărcarea paginii, căutând pozele terminate fără lăţime. */
+(function () {
+  function fallback(img) {
+    var pic = img.parentNode;
+    if (!pic || pic.tagName !== 'PICTURE') return;
+    var sources = pic.querySelectorAll('source');
+    if (!sources.length) return;
+    Array.prototype.forEach.call(sources, function (s) { s.parentNode.removeChild(s); });
+    var src = img.getAttribute('src');
+    img.removeAttribute('src');
+    img.setAttribute('src', src);
+  }
+  document.addEventListener('error', function (e) {
+    if (e.target && e.target.tagName === 'IMG') fallback(e.target);
+  }, true);
+  window.addEventListener('load', function () {
+    Array.prototype.forEach.call(document.querySelectorAll('picture > img'), function (img) {
+      if (img.complete && !img.naturalWidth) fallback(img);
+    });
+  });
+})();

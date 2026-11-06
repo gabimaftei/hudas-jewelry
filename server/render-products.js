@@ -66,6 +66,12 @@ const fill = (s, vals) => s.replace(/\{(\w+)\}/g, (m, k) => (vals[k] !== undefin
 
 export function productUrl(p, lang = 'ro') { return `${lang === 'en' ? '/en' : ''}/piese/${p.id}/`; }
 function photo(p, n) { return `/assets/images/${p.id}-${n}.jpg`; }
+/* <picture> cu varianta WebP (panoul urcă .webp lângă fiecare .jpg) şi rezerva
+   JPG; aceeaşi structură o face şi picture() din assets/js/app.js. Dacă .webp
+   lipseşte, assets/js/common.js trece singur pe JPG. */
+function pic(src, imgAttrs) {
+  return `<picture><source srcset="${src.replace(/\.jpg$/, '.webp')}" type="image/webp"><img src="${src}" ${imgAttrs}></picture>`;
+}
 
 /* Engleza goală cade pe română, câmp cu câmp. */
 function locOf(p, lang) {
@@ -97,7 +103,7 @@ function card(p, lang = 'ro') {
   const ro = locOf(p, 'ro');
   const en = locOf(p, 'en');
   return `<a class="card" href="${productUrl(p, lang)}">
-          <span class="card__frame"><img src="${photo(p, 1)}" alt="${esc((lang === 'en' ? en : ro).name)} — ${esc((lang === 'en' ? en : ro).tagline)}" loading="lazy" decoding="async">${p.sold ? `<span class="card__sold">${ui('sold')}</span>` : ''}</span>
+          <span class="card__frame">${pic(photo(p, 1), `alt="${esc((lang === 'en' ? en : ro).name)} — ${esc((lang === 'en' ? en : ro).tagline)}" loading="lazy" decoding="async"`)}${p.sold ? `<span class="card__sold">${ui('sold')}</span>` : ''}</span>
           <span class="card__body">
             <span class="card__name">${both(ro.name, en.name)}</span>
             <span class="card__tag">${both(ro.tagline, en.tagline)}</span>
@@ -182,7 +188,7 @@ export function renderProductPage({ content, product: p, products = [], exhibiti
   };
 
   const imgs = photos.map((src, i) =>
-    `<img src="${src}" alt="${esc(L.name)} — ${esc(fill(COPY[lang].photo, { n: i + 1 }))}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">`);
+    pic(src, `alt="${esc(L.name)} — ${esc(fill(COPY[lang].photo, { n: i + 1 }))}" loading="${i === 0 ? 'eager' : 'lazy'}"${i === 0 ? ' fetchpriority="high"' : ''} decoding="async"`));
 
   const order = p.sold
     ? `<a class="btn btn--primary btn--lg btn--full" aria-disabled="true">${ui('orderSold')}</a>

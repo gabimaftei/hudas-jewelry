@@ -122,6 +122,20 @@
   /* ─────────────── galeria ─────────────── */
   function photo(p, n) { return '/assets/images/' + p.id + '-' + n + '.jpg'; }
 
+  /* <picture> cu varianta WebP a pozei şi rezerva JPG: imaginea primită
+     (cu alt, loading etc. puse de apelant) intră în <picture>. Dacă .webp
+     lipseşte, common.js trece singur pe JPG. */
+  function picture(src, img) {
+    var pic = document.createElement('picture');
+    var source = document.createElement('source');
+    source.srcset = src.replace(/\.jpg$/, '.webp');
+    source.type = 'image/webp';
+    pic.appendChild(source);
+    img.src = src;
+    pic.appendChild(img);
+    return pic;
+  }
+
   function buildGrid() {
     var grid = $('#product-grid');
     if (!grid) return;
@@ -143,11 +157,10 @@
       frame.className = 'card__frame';
 
       var img = document.createElement('img');
-      img.src = photo(p, 1);
       img.alt = loc.name + ' — ' + loc.tagline;
       img.loading = i < 4 ? 'eager' : 'lazy';
       img.decoding = 'async';
-      frame.appendChild(img);
+      frame.appendChild(picture(photo(p, 1), img));
 
       if (p.exhibited && EXHIBITIONS[p.exhibited]) {
         var flag = document.createElement('span');
@@ -363,9 +376,8 @@
     var loc = p[HJ.lang()] || p.ro;
     stage.textContent = '';
     var img = document.createElement('img');
-    img.src = photo(p, n);
     img.alt = loc.name + ' — ' + fill(t('pm.photoOf'), { n: n, total: p.photos });
-    stage.appendChild(img);
+    stage.appendChild(picture(photo(p, n), img));
     $$('#pm-thumbs button').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.dataset.spin !== '1' && Number(b.dataset.n) === n));
     });
@@ -396,9 +408,8 @@
           b.dataset.n = n;
           b.setAttribute('aria-label', fill(t('pm.photoOf'), { n: n, total: p.photos }));
           var im = document.createElement('img');
-          im.src = photo(p, n);
           im.alt = '';
-          b.appendChild(im);
+          b.appendChild(picture(photo(p, n), im));
           b.addEventListener('click', function () { showPhoto(p, n); });
           thumbs.appendChild(b);
         })(n);
