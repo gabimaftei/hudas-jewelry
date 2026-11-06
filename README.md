@@ -223,6 +223,13 @@ Cele trei adrese absolute din `index.html` — `og:image`, `og:url` și
 vreodată, ele trebuie schimbate**, altfel site-ul merge, dar
 previzualizarea linkului pe Instagram și WhatsApp nu.
 
+### Cache-ul
+
+`_headers` hotărăşte cât ţine browserul fiecare fişier: fonturile un an, pozele o zi,
+CSS-ul şi JS-ul o oră, iar paginile HTML deloc (se vede imediat ce s-a publicat).
+Consecinţa: **o poză înlocuită cu acelaşi nume se vede la cei care au mai fost pe
+site abia după cel mult 24 de ore.** Fişierul nu se serveşte pe site.
+
 ### Când modifici ceva
 
 CSS-ul și JS-ul sunt legate cu un marcaj de versiune, `?v=1`. **Dacă schimbi

@@ -1,0 +1,28 @@
+# Cât timp păstrează browserul fiecare fişier. Fără asta, Cloudflare trimite
+# `max-age=0, must-revalidate`: la fiecare vizită browserul reîntreabă serverul
+# despre fiecare font, poză şi script (zeci de cereri), chiar dacă nu s-a schimbat nimic.
+#
+# Paginile HTML nu apar aici: rămân cu regula implicită, deci o modificare
+# publicată din panou se vede imediat.
+
+# Fonturile nu se schimbă niciodată (numele lor spune tot).
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Pozele păstrează acelaşi nume când Huda le înlocuieşte din panou, deci
+# nu pot fi "pe vecie". O zi: cine le-a văzut deja nu le mai descarcă,
+# iar o poză schimbată se vede în cel mult 24 de ore.
+/assets/images/*
+  Cache-Control: public, max-age=86400
+/assets/blog/*
+  Cache-Control: public, max-age=86400
+/assets/spins/*
+  Cache-Control: public, max-age=86400
+
+# CSS şi JS au versiune în adresă (?v=… sau ?h=…): când se ridică versiunea,
+# adresa e alta şi se descarcă din nou. Doar o oră, ca o uitare de ridicat
+# versiunea să nu rămână ascunsă mult timp.
+/assets/css/*
+  Cache-Control: public, max-age=3600
+/assets/js/*
+  Cache-Control: public, max-age=3600
