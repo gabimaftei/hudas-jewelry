@@ -298,7 +298,7 @@ export function renderIndex(html, { content, timeline, posts, productsJs, conten
              .replace('<meta property="og:locale:alternate" content="en_GB">', '<meta property="og:locale:alternate" content="ro_RO">');
     for (const [a, b] of EN_STATIC) out = out.split(a).join(b);
     /* pagina stă acum la /en/: căile relative de la rădăcină nu mai merg */
-    out = out.replace(/\b(src|href)="assets\//g, '$1="/assets/');
+    out = out.replace(/\b(src|srcset|href)="assets\//g, '$1="/assets/');
     out = showEn(out);
   }
   return out;
