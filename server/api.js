@@ -20,6 +20,7 @@ import {
   parseConsts, renderProductsJs, renderContentJs, renderPostsJson,
   renderIndex, renderBlogIndex, renderPost, siteInfo, sortPosts,
 } from './render.js';
+import { LOCK_SECONDS, isLocked, noteFailure } from './limit.js';
 
 const MAX_BODY = 3 * 1024 * 1024;
 const MAX_BLOB = 900 * 1024;
@@ -33,11 +34,19 @@ const SHA = /^[0-9a-f]{40}$/;
 const CONFLICT = 'Între timp s-a publicat altceva (poate dintr-un alt tab). Ca să nu se piardă '
   + 'nimic, salvarea a fost oprită. Copiază ce ai scris, reîncarcă panoul și publică din nou.';
 
-export function json(body, status = 200) {
+export function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers },
   });
+}
+
+function tooManyTries() {
+  return json(
+    { error: `Prea multe parole greșite. Încearcă din nou peste ${LOCK_SECONDS / 60} minute.` },
+    429,
+    { 'retry-after': String(LOCK_SECONDS) },
+  );
 }
 
 /* O eroare al cărei mesaj e pentru ea, nu pentru programator. */
@@ -321,6 +330,7 @@ export async function handleApi(request, env) {
   if (!env.ADMIN_PASSWORD || !env.GITHUB_TOKEN) {
     return json({ error: 'Panoul nu e configurat complet: lipsește ADMIN_PASSWORD sau GITHUB_TOKEN.' }, 500);
   }
+  if (await isLocked(request)) return tooManyTries();
 
   let body;
   try {
@@ -333,6 +343,7 @@ export async function handleApi(request, env) {
   }
 
   if (!sameSecret(String(body.password || ''), env.ADMIN_PASSWORD)) {
+    if (await noteFailure(request, env)) return tooManyTries();
     await new Promise((r) => setTimeout(r, 700));   // încetineşte încercările repetate
     return json({ error: 'Parolă greșită.' }, 401);
   }

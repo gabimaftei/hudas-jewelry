@@ -18,7 +18,7 @@ assets/
   images/               ← pozele pieselor
   blog/<articol>/       ← pozele articolelor
 data/posts.json         ← GENERAT: articolele (nu se serveşte pe site)
-server/                 ← rutele panoului: api.js, render.js (paginile), github.js
+server/                 ← rutele panoului: api.js, limit.js, render.js (paginile), github.js
 worker.js               ← punctul de intrare al Worker-ului Cloudflare
 tools/                  ← discul de rotire şi pregătirea cadrelor
 ```
@@ -254,6 +254,18 @@ de la nimeni. În plus:
   `connect-src 'none'` interzice orice cerere de rețea din JavaScript. Dacă
   cineva ar reuși vreodată să injecteze un script sau un pixel de urmărire,
   browserul ar refuza să-l ruleze.
+- **Anteturi HTTP de securitate**, în `_headers`, pe toate fişierele şi paginile:
+  `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Strict-Transport-Security`,
+  `Referrer-Policy` şi un al doilea CSP, doar cu `frame-ancestors 'none'`: asta nu
+  merge din `<meta>`, iar fără el `/admin` ar putea fi pus într-un iframe. Regula
+  `/*` se adună cu cele de cache, iar paginile HTML o primesc şi ele, deşi trec prin
+  Worker, pentru că `env.ASSETS.fetch` întoarce răspunsul cu anteturi cu tot.
+  Răspunsurile din `/api/*` nu trec prin `_headers` şi nici n-au nevoie: sunt JSON cu
+  tipul corect, fără cache, şi nu se afişează nicăieri ca pagină.
+  **HSTS-ul e o promisiune pe un an**: un browser care a văzut antetul refuză `http://`
+  pe `hudasjewelry.com` timp de un an. Intenţionat fără `includeSubDomains` şi `preload`,
+  ca să nu lege subdomenii viitoare. Dacă site-ul ar trebui mutat de pe https, antetul
+  se pune întâi pe `max-age=0`.
 - **Niciun stil scris din JavaScript.** `style-src 'self'` ar bloca orice valoare
   pusă în atributul `style` dintr-un script, așa că tot ce e dinamic (meniul,
   filtrele, blocarea scroll-ului) se face prin clase definite în `styles.css`.
@@ -393,6 +405,37 @@ e legat, schimbă adresele absolute din `index.html` (`og:image`, `og:url`,
 `canonical`). Paginile de blog iau adresa site-ului din `canonical`, deci se
 actualizează singure la următoarea salvare din panou.
 
+### Limita de încercări pentru parolă
+
+Peste **10 parole greşite într-un minut de pe aceeaşi adresă IP**, adresa e blocată
+**15 minute**: primeşte 429, chiar şi cu parola bună. Cererile cu parola bună nu se
+numără, deci oricâte poze urcate nu ating limita. Pauza de 700 ms de după o parolă
+greşită rămâne, dar ea ţine doar cererea respectivă: nu opreşte cereri trimise în paralel.
+
+Numărătoarea o face binding-ul `PASSWORD_LIMIT` din `wrangler.jsonc` (cere wrangler
+4.36+), iar blocarea stă în cache-ul Worker-ului; motivul celor două piese e explicat
+în `server/limit.js`. **Nu trebuie setat nimic în dashboard** pentru asta. Ambele sunt
+pe fiecare centru de date, deci limita e aproximativă, iar un atac de pe multe adrese
+se opreşte doar parţial: apărarea de bază rămâne o parolă lungă. Numerele se schimbă în
+`wrangler.jsonc` (`limit`; `period` poate fi doar 10 sau 60) şi `LOCK_SECONDS`.
+
+Blocarea trece singură. Dacă Huda s-a blocat, poate intra imediat de pe altă reţea
+(de exemplu de pe date mobile, în loc de Wi-Fi).
+
+**Opţional, în dashboard: o regulă WAF.** Limita din cod nu fereşte cota gratuită de
+100.000 de cereri pe zi, pentru că fiecare cerere tot porneşte Worker-ul, iar paginile
+HTML trec tot prin el. Regula de mai jos opreşte potopul înainte de Worker. Planul
+gratuit are voie la una singură, de 10 secunde. Pe contul Hudei:
+
+1. Cloudflare → domeniul `hudasjewelry.com` → **Security** → **WAF** → **Rate limiting
+   rules** → **Create rule** (denumirile din meniu se mai schimbă).
+2. Nume: `panou-api`.
+3. Field **URI Path**, operator **starts with**, valoare `/api/`.
+4. Same characteristics: **IP**. Limita: **30 requests**, perioada **10 seconds**.
+5. Action **Block**, durata **10 seconds**. **Deploy**.
+
+Panoul trimite pozele una câte una, deci nu ajunge la 30 de cereri în 10 secunde.
+
 ### Cum se testează local, fără să atingi site-ul real
 
 Serverul vorbeşte cu GitHub prin `server/github.js`, iar adresa API-ului se poate
@@ -408,10 +451,23 @@ GITHUB_API="http://127.0.0.1:4390"
 
 **Nu seta niciodată `GITHUB_API` pe Worker-ul de producţie.**
 
+Pe localhost, Worker-ul ar trimite orice cerere pe domeniul real (`CANONICAL` în
+`worker.js`). Cele două opţiuni de mai jos îi arată Worker-ului adresa de producţie,
+deci paginile şi panoul se văd la <http://127.0.0.1:8799>:
+
+```bash
+npx -y -p node@22 -p wrangler@4 wrangler dev --port 8799 --ip 127.0.0.1 --local-upstream hudasjewelry.com --upstream-protocol https
+```
+
+Limita de parole merge şi local. Antetul `cf-connecting-ip` trimis cu `curl` simulează
+altă adresă; blocările dispar la repornirea lui `wrangler dev`.
+
 ### Dacă ceva nu merge
 
 - **„Parolă greșită" deși e corectă** → `ADMIN_PASSWORD` are un spaţiu la capăt,
   sau a fost pusă pe alt Worker.
+- **„Prea multe parole greșite"** → adresa e blocată 15 minute; vezi „Limita de
+  încercări pentru parolă".
 - **„Panoul nu e configurat complet"** → lipseşte un secret. Verifică cu
   `npx -y -p node@22 -p wrangler@4 wrangler secret list`.
 - **„GitHub … 401 Bad credentials"** → tokenul e greşit, trunchiat sau şters.

@@ -170,6 +170,7 @@ greșeală o piesă, spune-i lui Gabi și se pune la loc, cu poze cu tot.
 ## Dacă ceva nu merge
 
 - **Nu-ți acceptă parola** → verifică să nu fi rămas un spațiu la început.
+- **„Prea multe parole greșite”** → după 10 parole greșite la rând, panoul nu te mai lasă să intri 15 minute, ca nimeni să nu poată ghici parola. Așteaptă, sau intră de pe date mobile în loc de Wi-Fi.
 - **Scrie „Nu s-a publicat"** → încearcă din nou peste un minut. Dacă tot nu
   merge, ce ai scris e încă pe ecran, nu se pierde. Nu închide pagina.
 - **Ai publicat, dar nu se vede pe site** → mai așteaptă un minut și dă refresh
