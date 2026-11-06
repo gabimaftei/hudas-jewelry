@@ -27,6 +27,12 @@ export default {
       return Response.redirect(url.toString(), safe ? 301 : 308);
     }
 
+    /* /piese/ nu are pagină proprie (doar /piese/<id>/): trimitem la colecţie,
+       ca să nu primească Google şi vizitatorii un 404 de la un nivel de adresă firesc. */
+    if (url.pathname === '/piese' || url.pathname === '/piese/') {
+      return Response.redirect(`${url.origin}/#collection`, 301);
+    }
+
     if (url.pathname.startsWith('/api/')) return handleApi(request, env);
     return env.ASSETS.fetch(request);
   },

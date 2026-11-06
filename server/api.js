@@ -319,8 +319,8 @@ async function publish(body, env) {
     text('blog/index.html', renderBlogIndex({ content, posts, site, ver, contentJs })),
     ...posts.map((post) => text(`blog/${post.id}/index.html`, renderPost({ content, post, site, ver, contentJs }))),
     ...products.map((product) => text(`piese/${product.id}/index.html`,
-      renderProductPage({ content, product, products, exhibitions, site, ver, contentJs }))),
-    text('404.html', renderNotFound({ content, site, ver, contentJs })),
+      renderProductPage({ content, product, products, exhibitions, posts, site, ver, contentJs }))),
+    text('404.html', renderNotFound({ content, posts, site, ver, contentJs })),
     text('sitemap.xml', renderSitemap({ posts, products, site })),
   ];
   for (const [path, sha] of images) entries.push({ path, mode: '100644', type: 'blob', sha });

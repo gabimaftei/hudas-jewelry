@@ -136,7 +136,7 @@ function specs(p, exhibitions) {
   ].filter(Boolean).join('\n          ');
 }
 
-export function renderProductPage({ content, product: p, products = [], exhibitions = {}, site, ver, contentJs }) {
+export function renderProductPage({ content, product: p, products = [], exhibitions = {}, posts = [], site, ver, contentJs }) {
   const ro = locOf(p, 'ro');
   const en = locOf(p, 'en');
   const path = productUrl(p);
@@ -190,7 +190,7 @@ export function renderProductPage({ content, product: p, products = [], exhibiti
   const more = related(p, products);
 
   return page({
-    content, site, ver, contentJs,
+    content, site, ver, contentJs, hasBlog: posts.length > 0,
     title: `${ro.name} — ${ro.tagline} | HUDA'S JEWELRY`,
     description: excerpt(ro.description, 160) || ro.tagline,
     image: photos[0],
