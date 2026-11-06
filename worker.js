@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
    Punctul de intrare al Worker-ului
    ───────────────────────────────────────────────────────────────
-   Site-ul e static: pozele, CSS-ul, JS-ul şi fonturile se servesc direct
-   de pe CDN, fără să treacă pe aici. Worker-ul primeşte rutele panoului
-   (/api/…, din server/api.js) şi paginile HTML — vezi run_worker_first în
-   wrangler.jsonc — ca să poată hotărî adresa canonică.
+   Site-ul e static: tot ce e sub /assets/ (poze, CSS, JS, fonturi) se
+   serveşte direct de pe CDN, fără să treacă pe aici. Worker-ul primeşte
+   rutele panoului (/api/…, din server/api.js) şi restul adreselor — vezi
+   run_worker_first în wrangler.jsonc — ca să poată hotărî adresa canonică.
 
    În plus, aici se hotărăşte adresa canonică: orice altă gazdă
    (www., domeniul vechi, scris greşit) şi orice cerere pe http://

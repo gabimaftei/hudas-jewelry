@@ -8,6 +8,10 @@ server e cel al panoului.
 ```
 index.html              ← pagina principală (părți din ea le regenerează panoul)
 blog/                   ← GENERAT de panou: lista articolelor şi câte o pagină pe articol
+404.html                ← GENERAT: pagina arătată la orice adresă inexistentă
+sitemap.xml             ← GENERAT: adresele site-ului, pentru motoarele de căutare
+robots.txt              ← scris de mână; indică sitemap-ul
+favicon.svg, favicon.ico, apple-touch-icon.png ← iconița site-ului
 admin/                  ← panoul: core.js + câte un modul pe tab (pieces, texts, blog)
 assets/
   css/styles.css        ← tot aspectul
@@ -279,6 +283,26 @@ de la nimeni. În plus:
 construit din JavaScript. Previzualizarea unui link pe WhatsApp sau Instagram nu
 rulează JavaScript, iar aşa arată poza şi titlul articolului.
 
+**Cum e găsit site-ul de motoarele de căutare:**
+
+- **`sitemap.xml`** se rescrie la fiecare salvare din panou, deci un articol nou
+  apare în el, iar unul şters dispare. `/blog/` intră doar dacă există articole.
+  `lastmod` au doar articolele, cu data lor: pentru restul n-avem o dată reală.
+- **Date structurate (JSON-LD)**, în `<head>`-ul din `index.html`: `Organization`
+  şi `WebSite`, cu linkul de Instagram. E `Organization` şi nu `JewelryStore`
+  pentru că Google cere adresă la un magazin, iar site-ul n-are una. Blocul nu
+  conţine texte din panou, deci o salvare nu-l atinge şi nu poate rămâne în urmă.
+  Fiind `application/ld+json`, nu se execută, iar CSP-ul nu-l blochează.
+- **Iconiţa** e `favicon.svg`; `favicon.ico` (16, 32, 48 px) şi
+  `apple-touch-icon.png` (180 px, fără colţuri rotunjite: le pune iOS) sunt
+  randate din ea. Google arată în rezultate doar o iconiţă care e fişier la o adresă.
+  Lista din `<head>` stă în două locuri: `index.html` şi `ICONS` din `server/render.js`.
+- **Fără `hreflang`, intenţionat.** `hreflang` leagă adrese diferite ale aceleiaşi
+  pagini, iar engleza n-are adresă proprie: e aceeaşi pagină, comutată din
+  JavaScript şi ţinută minte în `localStorage`. Google indexează varianta românească
+  şi n-ar avea la ce adresă să trimită un căutător de limbă engleză. Ar avea rost doar
+  dacă engleza primeşte pagini proprii (de pildă `/en/`), generate şi ele de panou.
+
 **Un compromis de știut:** galeria de piese e construită din JavaScript, deci cu
 JS oprit pagina se vede, dar fără piese. Motoarele de căutare rulează JS, așa că nu e o
 problemă pentru Google — dar e bine de știut.
@@ -335,6 +359,7 @@ serverul refoloseşte fişierul existent din repo.
   meniu (ultimele două doar dacă există articole), plus o amprentă a datelor în
   adresa scripturilor, ca browserul să nu ţină o versiune veche în cache
 - `blog/index.html` şi `blog/<id>/index.html` pentru fiecare articol
+- `404.html` şi `sitemap.xml`
 
 Părţile regenerate din `index.html` stau între marcaje:
 `<!-- timeline:start -->…<!-- timeline:end -->`, `blog`, `navblog`, `footblog`.
@@ -394,7 +419,11 @@ generezi tokenul**, ca să-l lipeşti pe loc. Tokenul nu trebuie să ajungă nic
 altundeva — nici în fişiere, nici în conversaţii. Dacă ajunge, se şterge de pe
 GitHub şi se face altul.
 
-`wrangler.jsonc` foloseşte `assets.run_worker_first` ca listă de căi, iar asta o
+`wrangler.jsonc` foloseşte `assets.run_worker_first` ca listă de căi: Worker-ul
+porneşte primul peste tot în afară de `/assets/`. Nu poate fi înapoi o listă doar cu
+paginile: cu `not_found_handling`, o adresă inexistentă ar primi direct `404.html`,
+fără Worker, deci fără redirecţionare de pe `http://` sau de pe domeniul vechi.
+Forma asta de configurare o
 înţelege doar wrangler 4 (wrangler 3 dă eroare la citirea configurării). Wrangler 4 cere
 Node 22: dacă ai Node 20, comenzile de mai sus aduc temporar un Node 22 cu `-p node@22`,
 fără să instaleze nimic pe calculator. Pe Node 22 merge şi simplu, `npx wrangler <comandă>`.
@@ -402,8 +431,9 @@ Publicarea manuală e la fel: `npx -y -p node@22 -p wrangler@4 wrangler deploy`.
 
 **4. Domeniul.** În Cloudflare, la Worker → Settings → Domains & Routes. După ce
 e legat, schimbă adresele absolute din `index.html` (`og:image`, `og:url`,
-`canonical`). Paginile de blog iau adresa site-ului din `canonical`, deci se
-actualizează singure la următoarea salvare din panou.
+`canonical`, blocul JSON-LD) şi din `robots.txt`. Paginile de blog, `404.html` şi
+`sitemap.xml` iau adresa site-ului din `canonical`, deci se actualizează singure la
+următoarea salvare din panou.
 
 ### Limita de încercări pentru parolă
 
@@ -461,6 +491,11 @@ npx -y -p node@22 -p wrangler@4 wrangler dev --port 8799 --ip 127.0.0.1 --local-
 
 Limita de parole merge şi local. Antetul `cf-connecting-ip` trimis cu `curl` simulează
 altă adresă; blocările dispar la repornirea lui `wrangler dev`.
+
+Local, `wrangler dev` ajunge pe `http://`, deci Worker-ul ar redirecţiona orice.
+Ca să vezi site-ul ca pe domeniu, adaugă `--host hudasjewelry.com --upstream-protocol https`.
+Cu `--host hudasjewlery.com` testezi redirecţionarea de pe domeniul vechi. O adresă
+inexistentă se testează şi cu `-H "Sec-Fetch-Mode: navigate"`, ca din browser.
 
 ### Dacă ceva nu merge
 

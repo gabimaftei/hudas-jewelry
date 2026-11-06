@@ -18,7 +18,8 @@
 import { readHead, listFiles, readText, createBlob, commitTree } from './github.js';
 import {
   parseConsts, renderProductsJs, renderContentJs, renderPostsJson,
-  renderIndex, renderBlogIndex, renderPost, siteInfo, sortPosts,
+  renderIndex, renderBlogIndex, renderPost, renderNotFound, renderSitemap,
+  siteInfo, sortPosts,
 } from './render.js';
 import { LOCK_SECONDS, isLocked, noteFailure } from './limit.js';
 
@@ -309,6 +310,8 @@ async function publish(body, env) {
     text('index.html', renderIndex(s.indexHtml, { content, timeline, posts, productsJs, contentJs })),
     text('blog/index.html', renderBlogIndex({ content, posts, site, ver, contentJs })),
     ...posts.map((post) => text(`blog/${post.id}/index.html`, renderPost({ content, post, site, ver, contentJs }))),
+    text('404.html', renderNotFound({ content, site, ver, contentJs })),
+    text('sitemap.xml', renderSitemap({ posts, site })),
   ];
   for (const [path, sha] of images) entries.push({ path, mode: '100644', type: 'blob', sha });
   for (const path of deletes) {

@@ -23,16 +23,16 @@
     // Fişierele site-ului stau în rădăcina repo-ului.
     "directory": "./",
     "binding": "ASSETS",
+    // Orice adresă inexistentă primeşte 404.html, cu statusul 404.
+    "not_found_handling": "404-page",
     // Fişierele statice se servesc de obicei direct, fără să pornească
     // Worker-ul — deci nici redirecţionarea de gazdă/https din worker.js
-    // n-ar apuca să ruleze. Îl pornim primul doar la paginile HTML şi la
-    // /api/: o invocare pe pagină vizitată, nu una pe fiecare poză.
-    "run_worker_first": [
-      "/", "/index.html",
-      "/blog", "/blog/*",
-      "/admin", "/admin/*",
-      "/api/*"
-    ]
+    // n-ar apuca să ruleze. Îl pornim primul peste tot în afară de /assets/:
+    // o invocare pe pagină vizitată, nu una pe fiecare poză. Lista nu poate
+    // enumera doar paginile: cu not_found_handling, o adresă inexistentă
+    // deschisă în browser ar primi 404.html fără să treacă prin Worker, deci
+    // n-ar mai fi redirecţionată de pe http:// sau de pe domeniul vechi.
+    "run_worker_first": ["/*", "!/assets/*"]
   },
   // Câte parole greşite pot veni de pe o adresă IP într-un minut: vezi
   // server/limit.js. Cere wrangler 4.36 sau mai nou. namespace_id e un număr

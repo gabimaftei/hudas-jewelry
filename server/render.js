@@ -236,11 +236,14 @@ export function renderIndex(html, { content, timeline, posts, productsJs, conten
 
 /* ─────────────── paginile de blog ─────────────── */
 
-const ICON = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b221c'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='16' fill='%23c9a57e' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E`;
+/* Aceleaşi trei rânduri ca în <head>-ul din index.html. */
+const ICONS = `<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">`;
 
 const IG_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.12 1.38C1.35 2.68.94 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.12.66.66 1.33 1.07 2.12 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.3 1.46-.72 2.12-1.38.66-.66 1.07-1.33 1.38-2.12.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.3-.79-.72-1.46-1.38-2.12C21.32 1.35 20.65.94 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path fill="currentColor" d="M12 5.84a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zm0 10.16a4 4 0 110-8 4 4 0 010 8z"/><circle fill="currentColor" cx="18.41" cy="5.59" r="1.44"/></svg>`;
 
-function page({ content, site, ver, contentJs, title, description, image, path, type, extraHead, main }) {
+function page({ content, site, ver, contentJs, title, description, image, path, type, extraHead, noindex, main }) {
   const ro = content.ro;
   const tx = (k) => esc(ro[k] || '');
   const url = site + path;
@@ -264,11 +267,10 @@ function page({ content, site, ver, contentJs, title, description, image, path, 
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:image" content="${esc(site + image)}">
-<meta property="og:url" content="${esc(url)}">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="canonical" href="${esc(url)}">${extraHead || ''}
+${noindex ? '' : `<meta property="og:url" content="${esc(url)}">\n`}<meta name="twitter:card" content="summary_large_image">
+${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${esc(url)}">`}${extraHead || ''}
 
-<link rel="icon" href="${ICON}">
+${ICONS}
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-400-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/jost-300-latin.woff2" crossorigin>
 <link rel="stylesheet" href="/assets/css/fonts.css">
@@ -335,6 +337,29 @@ ${main}
 </body>
 </html>
 `;
+}
+
+/* Pagina arătată de Cloudflare la orice adresă inexistentă (not_found_handling
+   în wrangler.jsonc). Trăieşte pe orice cale, deci toate linkurile ei sunt
+   absolute; n-are adresă proprie, deci nici canonical, şi nu se indexează. */
+export function renderNotFound({ content, site, ver, contentJs }) {
+  return page({
+    content, site, ver, contentJs,
+    title: 'Pagina nu există — HUDA\'S JEWELRY',
+    description: content.ro['meta.description'] || '',
+    image: '/assets/images/og.jpg',
+    path: '/',
+    type: 'website',
+    noindex: true,
+    main: `<section class="section blog-head" aria-labelledby="notfound-title">
+  <div class="section__head">
+    <p class="eyebrow">404</p>
+    <h1 class="section__title" id="notfound-title">${both('Pagina asta nu există', 'This page doesn’t exist')}</h1>
+    <p class="section__lede">${both('Poate a fost mutată, sau adresa are o greșeală.', 'It may have moved, or the address has a typo.')}</p>
+  </div>
+  <a class="btn btn--ghost" href="/">${both('Înapoi la prima pagină', 'Back to the home page')}</a>
+</section>`,
+  });
 }
 
 export function renderBlogIndex({ content, posts, site, ver, contentJs }) {
@@ -410,4 +435,24 @@ export function renderPost({ content, post, site, ver, contentJs }) {
     <p class="article__back article__foot"><a href="/blog/" data-i18n="blog.back">${esc(ro['blog.back'] || '')}</a></p>
   </article>`,
   });
+}
+
+/* ─────────────── sitemap ─────────────── */
+
+/* Lista adreselor pentru motoarele de căutare. Pagina de blog intră doar dacă
+   are articole, ca în meniul primei pagini. Doar articolele au <lastmod>, data
+   lor: pentru restul n-avem o dată reală, iar una inventată strică mai mult
+   decât lipsa ei. */
+export function renderSitemap({ posts, site }) {
+  const url = (path, date) => `  <url>
+    <loc>${esc(site + path)}</loc>${date ? `
+    <lastmod>${esc(date)}</lastmod>` : ''}
+  </url>
+`;
+  const list = sortPosts(posts);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fișier generat de panoul de la /admin. Orice modificare făcută de mână se pierde la următoarea salvare. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${url('/')}${list.length ? url('/blog/') : ''}${list.map((p) => url(postUrl(p), p.date)).join('')}</urlset>
+`;
 }
