@@ -113,16 +113,33 @@ export function formatDate(iso, lang) {
 export function paragraphs(text) {
   return String(text || '').replace(/\r\n?/g, '\n').split(/\n\s*\n/)
     .map((p) => p.trim()).filter(Boolean)
-    .map((p) => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>')
+    .map((p) => {
+      /* „## Titlu" pe un rând propriu = subtitlu (h2). */
+      const h = /^##\s+([^\n]+)$/.exec(p);
+      if (h) return '<h2>' + inline(h[1]) + '</h2>';
+      return '<p>' + inline(p).replace(/\n/g, '<br>') + '</p>';
+    })
     .join('\n      ');
+}
+
+/* Text escapat + linkuri interne scrise [text](/cale/). Linkurile merg doar
+   spre adrese din acelaşi site (încep cu un singur „/", fără alte caractere
+   decât litere mici, cifre, „-", „/" şi „#"); orice altceva rămâne text. */
+function inline(t) {
+  return esc(t).replace(/\[([^\]\n]{1,120})\]\((\/(?!\/)[a-z0-9\/#-]{0,120})\)/g,
+    (m, label, href) => `<a href="${href}">${label}</a>`);
 }
 
 export function excerpt(text, max = 170) {
   const first = String(text || '').replace(/\r\n?/g, '\n').split(/\n\s*\n/)
     .map((p) => p.trim()).filter(Boolean)[0] || '';
-  const flat = first.replace(/\s+/g, ' ');
+  /* fără semnele de formatare: „## " şi [text](/cale/) */
+  const flat = first.replace(/^##\s+/, '').replace(/\[([^\]\n]+)\]\([^)\n]*\)/g, '$1').replace(/\s+/g, ' ');
   if (flat.length <= max) return flat;
   const cut = flat.slice(0, max);
+  /* de preferat, taie la sfârşitul unei propoziţii */
+  const stop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! '));
+  if (stop > 70) return cut.slice(0, stop + 1);
   return cut.slice(0, cut.lastIndexOf(' ') > 60 ? cut.lastIndexOf(' ') : max).replace(/[\s,.;:—-]+$/, '') + '…';
 }
 
@@ -152,7 +169,7 @@ export function siteInfo(indexHtml) {
   };
 }
 
-function postUrl(post) { return `/blog/${post.id}/`; }
+function postUrl(post, lang = 'ro') { return `${lang === 'en' ? '/en' : ''}/blog/${post.id}/`; }
 function postPhoto(post, n) { return `/assets/blog/${post.id}/${n}.jpg`; }
 
 export function postCard(post, heading = 'h3') {
@@ -464,20 +481,50 @@ function bodyBlock(lang, post, useRo) {
     </div>`;
 }
 
-export function renderPost({ content, post, site, ver, contentJs }) {
+export function renderPost({ content, post, site, ver, contentJs, lang = 'ro' }) {
   const ro = content.ro;
+  const en = lang === 'en';
   const tr = translated(post);
+  const src = en && tr ? post.en : post.ro;
   const photos = post.photos.map((ph, i) =>
-    `<img src="${postPhoto(post, i + 1)}" alt="${esc(post.ro.title)} — ${i + 1}" width="${ph.w}" height="${ph.h}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">`);
+    `<img src="${postPhoto(post, i + 1)}" alt="${esc(src.title)} — ${i + 1}" width="${ph.w}" height="${ph.h}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">`);
+  const url = site + postUrl(post, lang);
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Article',
+        '@id': url + '#article',
+        headline: src.title,
+        description: excerpt(src.body) || ro['meta.description'] || '',
+        image: post.photos.map((_, i) => site + postPhoto(post, i + 1)),
+        datePublished: post.date,
+        dateModified: post.date,
+        inLanguage: lang,
+        mainEntityOfPage: url,
+        author: { '@type': 'Organization', '@id': site + '/#organization', name: "HUDA'S JEWELRY", url: site + '/' },
+        publisher: { '@type': 'Organization', '@id': site + '/#organization', name: "HUDA'S JEWELRY", url: site + '/' },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: "HUDA'S JEWELRY", item: site + (en ? '/en/' : '/') },
+          { '@type': 'ListItem', position: 2, name: 'Blog', item: site + '/blog/' },
+          { '@type': 'ListItem', position: 3, name: src.title, item: url },
+        ],
+      },
+    ],
+  };
 
   return page({
-    content, site, ver, contentJs,
-    title: `${post.ro.title} — HUDA'S JEWELRY`,
-    description: excerpt(post.ro.body) || ro['meta.description'] || '',
+    content, site, ver, contentJs, lang,
+    alt: tr ? { ro: postUrl(post), en: postUrl(post, 'en') } : undefined,
+    title: `${src.title} — HUDA'S JEWELRY`,
+    description: excerpt(src.body, 160) || ro['meta.description'] || '',
     image: postPhoto(post, 1),
-    path: postUrl(post),
+    path: postUrl(post, lang),
     type: 'article',
-    extraHead: `\n<meta property="article:published_time" content="${post.date}">`,
+    extraHead: `\n<meta property="article:published_time" content="${post.date}">\n<script type="application/ld+json">\n${encJson(ld).split('<').join('\\u003c')}\n</script>`,
     main: `<article class="article">
     <p class="article__back"><a href="/blog/" data-i18n="blog.back">${esc(ro['blog.back'] || '')}</a></p>
     <p class="eyebrow"><time datetime="${post.date}">${both(formatDate(post.date, 'ro'), formatDate(post.date, 'en'))}</time></p>
@@ -515,6 +562,8 @@ export function renderSitemap({ posts, products = [], site }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Fișier generat de panoul de la /admin. Orice modificare făcută de mână se pierde la următoarea salvare. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${pair('/', '/en/')}${list.length ? url('/blog/') : ''}${products.map((p) => pair(`/piese/${p.id}/`, `/en/piese/${p.id}/`)).join('')}${list.map((p) => url(postUrl(p), p.date)).join('')}</urlset>
+${pair('/', '/en/')}${list.length ? url('/blog/') : ''}${products.map((p) => pair(`/piese/${p.id}/`, `/en/piese/${p.id}/`)).join('')}${list.map((p) => translated(p)
+    ? url(postUrl(p), p.date, { ro: postUrl(p), en: postUrl(p, 'en') }) + url(postUrl(p, 'en'), p.date, { ro: postUrl(p), en: postUrl(p, 'en') })
+    : url(postUrl(p), p.date)).join('')}</urlset>
 `;
 }

@@ -25,7 +25,8 @@ assets/
 data/posts.json         ← GENERAT: articolele (nu se serveşte pe site)
 server/                 ← rutele panoului: api.js, limit.js, render.js (paginile), github.js
 worker.js               ← punctul de intrare al Worker-ului Cloudflare
-tools/                  ← discul de rotire şi pregătirea cadrelor
+tools/                  ← discul de rotire, pregătirea cadrelor şi build-site.mjs
+                          (`node tools/build-site.mjs` regenerează local paginile, ca o publicare din panou)
 ```
 
 **Fişierele marcate GENERAT se rescriu la fiecare salvare din panou.** Orice

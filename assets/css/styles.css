@@ -524,6 +524,8 @@ a { color: inherit; }
 .article__cover { margin: 0 0 2.5rem; }
 .article__cover img, .article__photos img { width: 100%; height: auto; border-radius: var(--radius); }
 .article__body p { margin: 0 0 1.35rem; font-size: 1.08rem; line-height: 1.8; }
+.article__body h2 { font-family: var(--serif, inherit); font-weight: 400; font-size: clamp(1.5rem, 3.2vw, 1.9rem); line-height: 1.25; margin: 2.75rem 0 1rem; }
+.article__body a { color: var(--accent); text-underline-offset: .2em; }
 .article__photos { display: grid; gap: clamp(1rem, 2.5vw, 1.5rem); margin: 2.75rem 0 0; }
 
 /* ══════════ PAGINA UNEI PIESE (/piese/<id>/) ══════════ */

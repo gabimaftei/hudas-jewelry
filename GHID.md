@@ -119,6 +119,9 @@ Apeși **Blog** sus, apoi **+ Scrie**.
    lista de articole și când trimiți linkul cuiva. Pe astea nu le tai, doar le
    micșorez, ca să se încarce repede.
 2. **Scrii titlul și textul în română.** Între paragrafe lași **un rând liber**.
+   Un rând care începe cu `## ` devine subtitlu. Un link către o piesă se
+   scrie `[inelul cub](/piese/inel-cub/)`; merg doar linkuri către pagini ale
+   site-ului. În engleză folosește `/en/piese/…`.
 3. **Data** e pusă singură pe azi. O poți schimba dacă scrii despre ceva mai vechi.
 4. **Engleza e opțională.** Dacă o lași goală, cine citește în engleză vede
    articolul în română, cu o notă mică.
