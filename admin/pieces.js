@@ -50,7 +50,7 @@
       try {
         var out = await HJA.processImage(list[i], { autoCrop: autoCrop, maxSide: 1400, quality: 0.88 });
         p.shots.push({
-          kind: 'new', token: String(++tokenSeq), blob: out.blob, url: URL.createObjectURL(out.blob),
+          kind: 'new', token: String(++tokenSeq), blob: out.blob, webp: out.webp, url: URL.createObjectURL(out.blob),
           bytes: out.blob.size, cropped: out.cropped,
         });
       } catch (e) {
@@ -423,7 +423,10 @@
         p.shots.forEach(function (s, n) {
           var target = p.id + '-' + (n + 1) + '.jpg';
           keep[target] = true;
-          if (s.kind === 'new') uploads.push({ path: 'assets/images/' + target, blob: s.blob });
+          if (s.kind === 'new') {
+            uploads.push({ path: 'assets/images/' + target, blob: s.blob });
+            if (s.webp) uploads.push({ path: 'assets/images/' + target.replace(/\.jpg$/, '.webp'), blob: s.webp });
+          }
           else if (s.file !== target) uploads.push({ path: 'assets/images/' + target, from: 'assets/images/' + s.file });
         });
         var rec = {

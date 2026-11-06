@@ -29,7 +29,7 @@ const MAX_BLOB = 900 * 1024;
 
 const KINDS = ['inel', 'colier', 'pandantiv', 'cercei', 'bratara'];
 const SAFE_ID = /^[a-z0-9-]{1,60}$/;
-const PIECE_IMG = /^assets\/images\/[a-z0-9-]{1,60}-[0-9]{1,2}\.jpg$/;
+const PIECE_IMG = /^assets\/images\/[a-z0-9-]{1,60}-[0-9]{1,2}\.(?:jpg|webp)$/;
 const BLOG_IMG = /^assets\/blog\/[a-z0-9-]{1,60}\/[0-9]{1,2}\.jpg$/;
 const SHA = /^[0-9a-f]{40}$/;
 
@@ -274,6 +274,24 @@ async function publish(body, env) {
     if (typeof path !== 'string' || !PIECE_IMG.test(path)) fail(`Cale nepermisă la ștergere: ${path}`);
     deletes.add(path);
   }
+  /* Fiecare poză de piesă are o variantă .webp lângă .jpg (paginile o cer prin
+     <picture>). Panoul urcă .webp-ul doar pentru pozele noi; aici îl ţinem în
+     pas cu .jpg-ul: mutat odată cu el, şters odată cu el, iar dacă .jpg-ul a
+     fost înlocuit fără .webp nou, cel vechi se şterge ca să nu arate altă
+     poză — pagina cade atunci pe .jpg (vezi assets/js/common.js). */
+  const webpOf = (p) => p.replace(/\.jpg$/, '.webp');
+  for (const path of [...images.keys()]) {
+    if (!PIECE_IMG.test(path) || !path.endsWith('.jpg')) continue;
+    const wp = webpOf(path);
+    if (images.has(wp)) continue;
+    const from = body.images[path] && body.images[path].from;
+    if (from && s.files.has(webpOf(from))) images.set(wp, s.files.get(webpOf(from)));
+    else if (s.files.has(wp)) deletes.add(wp);
+  }
+  for (const path of [...deletes]) {
+    if (PIECE_IMG.test(path) && path.endsWith('.jpg') && s.files.has(webpOf(path))) deletes.add(webpOf(path));
+  }
+
   /* pozele şi paginile articolelor şterse sau micşorate le calculăm aici,
      din ce era în repo, nu le luăm de la browser */
   const now = new Map(posts.map((p) => [p.id, p]));
