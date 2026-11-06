@@ -64,7 +64,7 @@ const COPY = {
 const ui = (k) => both(COPY.ro[k], COPY.en[k]);
 const fill = (s, vals) => s.replace(/\{(\w+)\}/g, (m, k) => (vals[k] !== undefined ? String(vals[k]) : ''));
 
-export function productUrl(p) { return `/piese/${p.id}/`; }
+export function productUrl(p, lang = 'ro') { return `${lang === 'en' ? '/en' : ''}/piese/${p.id}/`; }
 function photo(p, n) { return `/assets/images/${p.id}-${n}.jpg`; }
 
 /* Engleza goală cade pe română, câmp cu câmp. */
@@ -93,11 +93,11 @@ function related(product, products, max = 4) {
   return same.concat(other).slice(0, max);
 }
 
-function card(p) {
+function card(p, lang = 'ro') {
   const ro = locOf(p, 'ro');
   const en = locOf(p, 'en');
-  return `<a class="card" href="${productUrl(p)}">
-          <span class="card__frame"><img src="${photo(p, 1)}" alt="${esc(ro.name)} — ${esc(ro.tagline)}" loading="lazy" decoding="async">${p.sold ? `<span class="card__sold">${ui('sold')}</span>` : ''}</span>
+  return `<a class="card" href="${productUrl(p, lang)}">
+          <span class="card__frame"><img src="${photo(p, 1)}" alt="${esc((lang === 'en' ? en : ro).name)} — ${esc((lang === 'en' ? en : ro).tagline)}" loading="lazy" decoding="async">${p.sold ? `<span class="card__sold">${ui('sold')}</span>` : ''}</span>
           <span class="card__body">
             <span class="card__name">${both(ro.name, en.name)}</span>
             <span class="card__tag">${both(ro.tagline, en.tagline)}</span>
@@ -136,10 +136,12 @@ function specs(p, exhibitions) {
   ].filter(Boolean).join('\n          ');
 }
 
-export function renderProductPage({ content, product: p, products = [], exhibitions = {}, posts = [], site, ver, contentJs }) {
+export function renderProductPage({ content, product: p, products = [], exhibitions = {}, posts = [], site, ver, contentJs, lang = 'ro' }) {
   const ro = locOf(p, 'ro');
   const en = locOf(p, 'en');
-  const path = productUrl(p);
+  const L = lang === 'en' ? en : ro;
+  const pre = lang === 'en' ? '/en' : '';
+  const path = productUrl(p, lang);
   const url = site + path;
   const photos = [];
   for (let n = 1; n <= p.photos; n++) photos.push(photo(p, n));
@@ -151,12 +153,13 @@ export function renderProductPage({ content, product: p, products = [], exhibiti
       {
         '@type': 'Product',
         '@id': url + '#product',
-        name: ro.name,
-        description: ro.description || ro.tagline,
+        name: L.name,
+        description: L.description || L.tagline,
         image: photos.map((ph) => site + ph),
         url,
-        category: kind.ro,
-        ...(ro.materials ? { material: ro.materials } : {}),
+        inLanguage: lang,
+        category: kind[lang],
+        ...(L.materials ? { material: L.materials } : {}),
         brand: { '@type': 'Brand', name: "HUDA'S JEWELRY" },
         manufacturer: { '@type': 'Organization', '@id': site + '/#organization', name: "HUDA'S JEWELRY", url: site + '/' },
         /* Fără preţ, intenţionat: preţul se spune în conversaţie (README, secţiunea 4). */
@@ -171,15 +174,15 @@ export function renderProductPage({ content, product: p, products = [], exhibiti
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: "HUDA'S JEWELRY", item: site + '/' },
-          { '@type': 'ListItem', position: 2, name: ro.name, item: url },
+          { '@type': 'ListItem', position: 1, name: "HUDA'S JEWELRY", item: site + pre + '/' },
+          { '@type': 'ListItem', position: 2, name: L.name, item: url },
         ],
       },
     ],
   };
 
   const imgs = photos.map((src, i) =>
-    `<img src="${src}" alt="${esc(ro.name)} — ${esc(fill(COPY.ro.photo, { n: i + 1 }))}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">`);
+    `<img src="${src}" alt="${esc(L.name)} — ${esc(fill(COPY[lang].photo, { n: i + 1 }))}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async">`);
 
   const order = p.sold
     ? `<a class="btn btn--primary btn--lg btn--full" aria-disabled="true">${ui('orderSold')}</a>
@@ -190,18 +193,19 @@ export function renderProductPage({ content, product: p, products = [], exhibiti
   const more = related(p, products);
 
   return page({
-    content, site, ver, contentJs, hasBlog: posts.length > 0,
-    title: `${ro.name} — ${ro.tagline} | HUDA'S JEWELRY`,
-    description: excerpt(ro.description, 160) || ro.tagline,
+    content, site, ver, contentJs, hasBlog: posts.length > 0, lang,
+    alt: { ro: productUrl(p), en: productUrl(p, 'en') },
+    title: `${L.name} — ${L.tagline} | HUDA'S JEWELRY`,
+    description: excerpt(L.description, 160) || L.tagline,
     image: photos[0],
     path,
     type: 'product',
-    extraHead: `\n<meta property="og:image:alt" content="${esc(ro.name)} — ${esc(ro.tagline)}">
+    extraHead: `\n<meta property="og:image:alt" content="${esc(L.name)} — ${esc(L.tagline)}">
 <script type="application/ld+json">
 ${ldJson(ld)}
 </script>`,
     main: `<article class="piece">
-    <p class="article__back"><a href="/#collection">${ui('back')}</a></p>
+    <p class="article__back"><a href="${pre}/#collection">${ui('back')}</a></p>
     <div class="piece__grid">
       <div class="piece__gallery">
         <figure class="piece__stage">${imgs[0]}</figure>${imgs.length > 1 ? `
@@ -224,9 +228,9 @@ ${ldJson(ld)}
     <section class="piece__more" aria-labelledby="more-title">
       <h2 class="piece__moretitle" id="more-title">${ui('more')}</h2>
       <div class="grid">
-        ${more.map(card).join('\n        ')}
+        ${more.map((m) => card(m, lang)).join('\n        ')}
       </div>
-      <p class="posts__more"><a class="btn btn--ghost" href="/#collection">${ui('all')}</a></p>
+      <p class="posts__more"><a class="btn btn--ghost" href="${pre}/#collection">${ui('all')}</a></p>
     </section>` : ''}
   </article>`,
   });

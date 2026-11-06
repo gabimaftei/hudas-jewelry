@@ -166,6 +166,44 @@ export function postCard(post, heading = 'h3') {
     </a>`;
 }
 
+
+/* ─────────────── varianta în engleză (/en/…) ─────────────── */
+
+/* Textele din HTML-ul scris de mână care nu trec prin content.js. */
+const EN_STATIC = [
+  ['aria-label="Meniu"', 'aria-label="Menu"'],
+  ['aria-label="Navigare principală"', 'aria-label="Main navigation"'],
+  ['aria-label="Navigare secundară"', 'aria-label="Footer navigation"'],
+  ['aria-label="Filtrează după tip"', 'aria-label="Filter by kind"'],
+  ['aria-label="Închide"', 'aria-label="Close"'],
+  ['alt="Huda Mahdi, portret"', 'alt="Huda Mahdi, portrait"'],
+  ['alt="Huda Mahdi purtând o piesă din colecție"', 'alt="Huda Mahdi wearing a piece from the collection"'],
+  ['alt="Huda Mahdi cu diploma primită la Romanian Jewelry Week 2024"', 'alt="Huda Mahdi with the diploma she received at Romanian Jewelry Week 2024"'],
+  ['content="Inel sculptural din argint cu pietre naturale, lucrat manual"', 'content="Sculptural silver ring with natural stones, made by hand"'],
+];
+const EN_TITLE = "HUDA'S JEWELRY — contemporary jewellery, made by hand";
+
+/* Blocurile cu data-l: pe o pagină /en/ se vede cel englezesc chiar din HTML,
+   nu abia după ce rulează JavaScript (Google şi previzualizările n-o fac). */
+export function showEn(html) {
+  return html.replace(/data-l="(ro|en)"( hidden)?/g, (m, l) => (l === 'en' ? 'data-l="en"' : 'data-l="ro" hidden'));
+}
+
+/* Engleza goală cade pe română, cheie cu cheie. */
+function enTexts(content) {
+  const out = { ...content.ro };
+  for (const [k, v] of Object.entries(content.en || {})) if (typeof v === 'string' && v.trim()) out[k] = v;
+  return out;
+}
+
+/* Cele trei rânduri hreflang, aceleaşi pe pagina românească şi pe cea engleză. */
+export function hreflang(site, roPath, enPath) {
+  return `
+<link rel="alternate" hreflang="ro" href="${esc(site + roPath)}">
+<link rel="alternate" hreflang="en" href="${esc(site + enPath)}">
+<link rel="alternate" hreflang="x-default" href="${esc(site + roPath)}">`;
+}
+
 /* ─────────────── pagina principală ─────────────── */
 
 function between(html, name, inner) {
@@ -205,8 +243,8 @@ export function renderTeaser(posts) {
 `;
 }
 
-export function renderIndex(html, { content, timeline, posts, productsJs, contentJs }) {
-  const ro = content.ro;
+export function renderIndex(html, { content, timeline, posts, productsJs, contentJs, lang = 'ro' }) {
+  const ro = lang === 'en' ? enTexts(content) : content.ro;
   let out = html;
 
   out = between(out, 'timeline', renderTimeline(timeline));
@@ -231,6 +269,21 @@ export function renderIndex(html, { content, timeline, posts, productsJs, conten
 
   out = out.replace(/assets\/js\/products\.js\?[^"]*"/, () => `assets/js/products.js?h=${hash(productsJs)}"`);
   out = out.replace(/assets\/js\/content\.js\?[^"]*"/, () => `assets/js/content.js?h=${hash(contentJs)}"`);
+
+  if (lang === 'en') {
+    const { site } = siteInfo(html);
+    out = out.replace('<html lang="ro"', '<html lang="en"');
+    out = out.replace(/<title>[^<]*<\/title>/, () => `<title>${esc(EN_TITLE)}</title>`);
+    out = out.replace(/(<meta property="og:title" content=")[^"]*(")/, (m, a, b) => a + esc(EN_TITLE) + b);
+    out = out.replace(`<link rel="canonical" href="${site}/">`, () => `<link rel="canonical" href="${site}/en/">`);
+    out = out.replace(`<meta property="og:url" content="${site}/">`, () => `<meta property="og:url" content="${site}/en/">`);
+    out = out.replace('<meta property="og:locale" content="ro_RO">', '<meta property="og:locale" content="en_GB">')
+             .replace('<meta property="og:locale:alternate" content="en_GB">', '<meta property="og:locale:alternate" content="ro_RO">');
+    for (const [a, b] of EN_STATIC) out = out.split(a).join(b);
+    /* pagina stă acum la /en/: căile relative de la rădăcină nu mai merg */
+    out = out.replace(/\b(src|href)="assets\//g, '$1="/assets/');
+    out = showEn(out);
+  }
   return out;
 }
 
@@ -243,12 +296,14 @@ const ICONS = `<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
 
 const IG_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.12 1.38C1.35 2.68.94 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.12.66.66 1.33 1.07 2.12 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.3 1.46-.72 2.12-1.38.66-.66 1.07-1.33 1.38-2.12.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.3-.79-.72-1.46-1.38-2.12C21.32 1.35 20.65.94 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path fill="currentColor" d="M12 5.84a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zm0 10.16a4 4 0 110-8 4 4 0 010 8z"/><circle fill="currentColor" cx="18.41" cy="5.59" r="1.44"/></svg>`;
 
-export function page({ content, site, ver, contentJs, title, description, image, path, type, extraHead, noindex, main, hasBlog = true }) {
-  const ro = content.ro;
+export function page({ content, site, ver, contentJs, title, description, image, path, type, extraHead, noindex, main, hasBlog = true, lang = 'ro', alt }) {
+  const en = lang === 'en';
+  const ro = en ? enTexts(content) : content.ro;
+  const pre = en ? '/en' : '';
   const tx = (k) => esc(ro[k] || '');
   const url = site + path;
-  return `<!DOCTYPE html>
-<html lang="ro">
+  const html = `<!DOCTYPE html>
+<html lang="${lang}"${alt ? ` data-alt-ro="${esc(alt.ro)}" data-alt-en="${esc(alt.en)}"` : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -263,12 +318,12 @@ export function page({ content, site, ver, contentJs, title, description, image,
 
 <meta property="og:type" content="${type}">
 <meta property="og:site_name" content="HUDA'S JEWELRY">
-<meta property="og:locale" content="ro_RO">
+<meta property="og:locale" content="${en ? 'en_GB' : 'ro_RO'}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:image" content="${esc(site + image)}">
 ${noindex ? '' : `<meta property="og:url" content="${esc(url)}">\n`}<meta name="twitter:card" content="summary_large_image">
-${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${esc(url)}">`}${extraHead || ''}
+${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${esc(url)}">`}${alt ? hreflang(site, alt.ro, alt.en) : ''}${extraHead || ''}
 
 ${ICONS}
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-400-latin.woff2" crossorigin>
@@ -282,7 +337,7 @@ ${ICONS}
 
 <header class="nav" id="nav">
   <div class="nav__inner">
-    <a class="nav__brand" href="/">
+    <a class="nav__brand" href="${pre}/">
       <span class="nav__mark">HUDA'S JEWELRY</span>
       <span class="nav__est" data-i18n="nav.est">${tx('nav.est')}</span>
     </a>
@@ -297,11 +352,11 @@ ${ICONS}
     </div>
 
     <nav class="nav__links" id="nav-links" aria-label="Navigare principală">
-      <a href="/#collection" data-i18n="nav.collection">${tx('nav.collection')}</a>
-      <a href="/#story" data-i18n="nav.story">${tx('nav.story')}</a>
-      <a href="/#recognition" data-i18n="nav.recognition">${tx('nav.recognition')}</a>
+      <a href="${pre}/#collection" data-i18n="nav.collection">${tx('nav.collection')}</a>
+      <a href="${pre}/#story" data-i18n="nav.story">${tx('nav.story')}</a>
+      <a href="${pre}/#recognition" data-i18n="nav.recognition">${tx('nav.recognition')}</a>
       ${hasBlog ? `<a href="/blog/" data-i18n="nav.blog">${tx('nav.blog')}</a>` : ''}
-      <a href="/#contact" data-i18n="nav.contact">${tx('nav.contact')}</a>
+      <a href="${pre}/#contact" data-i18n="nav.contact">${tx('nav.contact')}</a>
       <div class="langswitch" role="group" aria-label="Limbă / Language">
         <button type="button" data-lang="ro" aria-pressed="true">RO</button>
         <span class="langswitch__sep" aria-hidden="true">/</span>
@@ -322,9 +377,9 @@ ${main}
       <p class="footer__tag" data-i18n="footer.tag">${tx('footer.tag')}</p>
     </div>
     <nav class="footer__links" aria-label="Navigare secundară">
-      <a href="/#collection" data-i18n="nav.collection">${tx('nav.collection')}</a>
-      <a href="/#story" data-i18n="nav.story">${tx('nav.story')}</a>
-      <a href="/#recognition" data-i18n="nav.recognition">${tx('nav.recognition')}</a>
+      <a href="${pre}/#collection" data-i18n="nav.collection">${tx('nav.collection')}</a>
+      <a href="${pre}/#story" data-i18n="nav.story">${tx('nav.story')}</a>
+      <a href="${pre}/#recognition" data-i18n="nav.recognition">${tx('nav.recognition')}</a>
       ${hasBlog ? `<a href="/blog/" data-i18n="nav.blog">${tx('nav.blog')}</a>` : ''}
       <a href="https://www.instagram.com/hudasjewelry/" target="_blank" rel="noopener noreferrer">Instagram</a>
     </nav>
@@ -337,6 +392,8 @@ ${main}
 </body>
 </html>
 `;
+  if (!en) return html;
+  return EN_STATIC.reduce((h, [a, b]) => h.split(a).join(b), showEn(html));
 }
 
 /* Pagina arătată de Cloudflare la orice adresă inexistentă (not_found_handling
@@ -444,15 +501,20 @@ export function renderPost({ content, post, site, ver, contentJs }) {
    lor: pentru produse și pentru restul n-avem o dată reală, iar una inventată
    strică mai mult decât lipsa ei. */
 export function renderSitemap({ posts, products = [], site }) {
-  const url = (path, date) => `  <url>
-    <loc>${esc(site + path)}</loc>${date ? `
+  const url = (path, date, alt) => `  <url>
+    <loc>${esc(site + path)}</loc>${alt ? `
+    <xhtml:link rel="alternate" hreflang="ro" href="${esc(site + alt.ro)}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${esc(site + alt.en)}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(site + alt.ro)}"/>` : ''}${date ? `
     <lastmod>${esc(date)}</lastmod>` : ''}
   </url>
 `;
+  /* fiecare pagină are două adrese, şi fiecare le declară pe amândouă */
+  const pair = (ro, en) => url(ro, null, { ro, en }) + url(en, null, { ro, en });
   const list = sortPosts(posts);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Fișier generat de panoul de la /admin. Orice modificare făcută de mână se pierde la următoarea salvare. -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${url('/')}${list.length ? url('/blog/') : ''}${products.map((p) => url(`/piese/${p.id}/`)).join('')}${list.map((p) => url(postUrl(p), p.date)).join('')}</urlset>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${pair('/', '/en/')}${list.length ? url('/blog/') : ''}${products.map((p) => pair(`/piese/${p.id}/`, `/en/piese/${p.id}/`)).join('')}${list.map((p) => url(postUrl(p), p.date)).join('')}</urlset>
 `;
 }

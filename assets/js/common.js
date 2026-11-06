@@ -25,6 +25,15 @@
     if (saved === 'ro' || saved === 'en') lang = saved;
   } catch (e) { /* stocare blocată: rămâne româna */ }
 
+  /* Paginile care au o pereche în cealaltă limbă (prima pagină și piesele:
+     /x/ şi /en/x/) spun unde e perechea în <html data-alt-ro data-alt-en>.
+     Limba lor e cea a adresei, nu cea din localStorage, iar butonul RO/EN
+     duce la pagina-pereche. Restul paginilor (blogul) schimbă limba pe loc. */
+  var de = document.documentElement;
+  var alt = { ro: de.getAttribute('data-alt-ro'), en: de.getAttribute('data-alt-en') };
+  var paired = !!(alt.ro && alt.en);
+  if (paired) lang = de.lang === 'en' ? 'en' : 'ro';
+
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
@@ -55,8 +64,9 @@
 
   function setLang(l) {
     if (l === lang || (l !== 'ro' && l !== 'en')) return;
-    lang = l;
     try { localStorage.setItem(KEY, l); } catch (e) { /* nimic de făcut */ }
+    if (paired) { window.location.href = alt[l]; return; }
+    lang = l;
     apply();
     listeners.forEach(function (fn) { fn(lang); });
   }

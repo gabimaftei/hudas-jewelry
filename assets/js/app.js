@@ -120,7 +120,7 @@
   }
 
   /* ─────────────── galeria ─────────────── */
-  function photo(p, n) { return 'assets/images/' + p.id + '-' + n + '.jpg'; }
+  function photo(p, n) { return '/assets/images/' + p.id + '-' + n + '.jpg'; }
 
   function buildGrid() {
     var grid = $('#product-grid');
@@ -133,7 +133,7 @@
       /* un link adevărat spre pagina piesei (/piese/<id>/), ca Google să
          le găsească pe toate; un clic simplu deschide totuşi fereastra */
       var card = document.createElement('a');
-      card.href = '/piese/' + p.id + '/';
+      card.href = (HJ.lang() === 'en' ? '/en' : '') + '/piese/' + p.id + '/';
       card.className = 'card reveal';
       card.dataset.id = p.id;
       card.dataset.kind = p.kind;
@@ -204,7 +204,7 @@
   var spin = null;
 
   function spinFrame(p, i) {
-    return 'assets/spins/' + p.id + '/' + String(i + 1).padStart(2, '0') + '.jpg';
+    return '/assets/spins/' + p.id + '/' + String(i + 1).padStart(2, '0') + '.jpg';
   }
 
   /* ordinea de încărcare: 1, 7, 13… apoi la jumătate, şi tot aşa */

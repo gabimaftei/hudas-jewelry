@@ -288,7 +288,7 @@ async function publish(body, env) {
      ce zice browserul — orice /piese/<id>/ fără piesă se şterge */
   const pieceIds = new Set(products.map((p) => p.id));
   for (const path of s.files.keys()) {
-    const m = /^piese\/([a-z0-9-]{1,60})\/index\.html$/.exec(path);
+    const m = /^(?:en\/)?piese\/([a-z0-9-]{1,60})\/index\.html$/.exec(path);
     if (m && !pieceIds.has(m[1])) deletes.add(path);
   }
 
@@ -316,10 +316,13 @@ async function publish(body, env) {
     text('assets/js/content.js', contentJs),
     text('data/posts.json', renderPostsJson(posts)),
     text('index.html', renderIndex(s.indexHtml, { content, timeline, posts, productsJs, contentJs })),
+    text('en/index.html', renderIndex(s.indexHtml, { content, timeline, posts, productsJs, contentJs, lang: 'en' })),
     text('blog/index.html', renderBlogIndex({ content, posts, site, ver, contentJs })),
     ...posts.map((post) => text(`blog/${post.id}/index.html`, renderPost({ content, post, site, ver, contentJs }))),
     ...products.map((product) => text(`piese/${product.id}/index.html`,
       renderProductPage({ content, product, products, exhibitions, posts, site, ver, contentJs }))),
+    ...products.map((product) => text(`en/piese/${product.id}/index.html`,
+      renderProductPage({ content, product, products, exhibitions, posts, site, ver, contentJs, lang: 'en' }))),
     text('404.html', renderNotFound({ content, posts, site, ver, contentJs })),
     text('sitemap.xml', renderSitemap({ posts, products, site })),
   ];

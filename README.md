@@ -310,6 +310,14 @@ rulează JavaScript, iar aşa arată poza şi titlul articolului.
 JS oprit pagina se vede, dar fără piese. Motoarele de căutare rulează JS, așa că nu e o
 problemă pentru Google — dar e bine de știut.
 
+### Pagini în engleză (`/en/`)
+
+Prima pagină și fiecare piesă au și o variantă engleză: `/en/` și `/en/piese/<id>/`.
+Se generează la fiecare salvare din panou, din aceleași texte (engleza goală cade pe
+română), cu `hreflang` pe ambele pagini și în `sitemap.xml`. Butonul RO/EN de pe aceste
+pagini duce la pagina-pereche, nu schimbă limba pe loc. Blogul rămâne o singură
+adresă, cu limba schimbată din JavaScript.
+
 ### SEO: Google Search Console și Bing
 
 Google află de site din adresele pe care i le dăm noi, iar asta se face din
