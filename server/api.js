@@ -18,7 +18,7 @@
 import { readHead, listFiles, readText, createBlob, commitTree } from './github.js';
 import {
   parseConsts, renderProductsJs, renderContentJs, renderPostsJson,
-  renderIndex, renderBlogIndex, renderPost, renderNotFound, renderSitemap,
+  renderIndex, renderBlogIndex, renderPost, translated, renderNotFound, renderSitemap,
   siteInfo, sortPosts,
 } from './render.js';
 import { renderProductPage } from './render-products.js';
@@ -301,6 +301,7 @@ async function publish(body, env) {
       deletes.add(`assets/blog/${old.id}/${n}.jpg`);
     }
     if (!kept) deletes.add(`blog/${old.id}/index.html`);
+    if (!kept || !translated(kept)) deletes.add(`en/blog/${old.id}/index.html`);
   }
   /* paginile pieselor care nu mai sunt în catalog: tot din repo, nu din
      ce zice browserul — orice /piese/<id>/ fără piesă se şterge */
@@ -337,6 +338,7 @@ async function publish(body, env) {
     text('en/index.html', renderIndex(s.indexHtml, { content, timeline, posts, productsJs, contentJs, lang: 'en' })),
     text('blog/index.html', renderBlogIndex({ content, posts, site, ver, contentJs })),
     ...posts.map((post) => text(`blog/${post.id}/index.html`, renderPost({ content, post, site, ver, contentJs }))),
+    ...posts.filter(translated).map((post) => text(`en/blog/${post.id}/index.html`, renderPost({ content, post, site, ver, contentJs, lang: 'en' }))),
     ...products.map((product) => text(`piese/${product.id}/index.html`,
       renderProductPage({ content, product, products, exhibitions, posts, site, ver, contentJs }))),
     ...products.map((product) => text(`en/piese/${product.id}/index.html`,
